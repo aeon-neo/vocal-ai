@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: vocalai-backend
+    runtime: node
+    env: node
+    buildCommand: npm ci --omit=dev
+    startCommand: npm run video-server
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: HUME_API_KEY
+        sync: false
+      - key: POSTGRES_HOST
+        sync: false
+      - key: POSTGRES_PORT
+        value: 5432
+      - key: POSTGRES_DB
+        sync: false
+      - key: POSTGRES_USER
+        sync: false
+      - key: POSTGRES_PASSWORD
+        sync: false
+      - key: WHISPER_PROVIDER
+        value: openai
+      - key: CORS_ORIGIN
+        value: https://vocal-ai-5zec.vercel.app

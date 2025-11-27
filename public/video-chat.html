@@ -1,0 +1,2286 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VocalAI - Problem Solving & Critical Thinking Oral Exam</title>
+    <link rel="icon" type="image/png" href="/logo.jpg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="/output.css" />
+    <style>
+      :root {
+        --background: #f4f7f8;
+        --foreground: #1a1a1a;
+        --card: #50808d;
+        --card-foreground: #ffffff;
+        --primary: #50808d;
+        --primary-foreground: #ffffff;
+        --secondary: #7a9ca8;
+        --accent: #50808d;
+        --muted: #e9ecef;
+        --muted-foreground: #2c2c2c;
+        --border: #d0dade;
+        --input: #ffffff;
+        --ring: #50808d;
+      }
+
+      body {
+        background: var(--background);
+        color: var(--foreground);
+      }
+
+      header {
+        background: var(--card);
+        color: var(--card-foreground);
+      }
+
+      select,
+      select option,
+      input,
+      textarea {
+        color: #1a1a1a;
+      }
+
+      .voice-spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(80, 128, 141, 0.35);
+        border-top-color: #50808d;
+        border-radius: 9999px;
+        animation: spin 0.9s linear infinite;
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        pointer-events: none;
+      }
+
+      .start-exam-spinner {
+        width: 28px;
+        height: 28px;
+        border: 3px solid rgba(80, 128, 141, 0.35);
+        border-top-color: #50808d;
+        border-radius: 9999px;
+        animation: spin 0.9s linear infinite;
+        pointer-events: none;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      select,
+      select option,
+      input,
+      textarea {
+        color: #1a1a1a;
+      }
+
+      #noCameraView {
+        background: rgba(80, 128, 141, 0.08);
+        border: 1px solid rgba(80, 128, 141, 0.2);
+      }
+
+      #controlButtons button {
+        background: #ffffff;
+        color: #1a1a1a;
+        border: 1px solid rgba(80, 128, 141, 0.5);
+      }
+
+      #controlButtons button:hover {
+        background: #e8f0f2;
+        color: #1a1a1a;
+      }
+
+      /* Resizer handle */
+      .resize-handle {
+        width: 4px;
+        cursor: ew-resize;
+        background: #ffffff;
+        transition: background 0.2s;
+      }
+      .resize-handle:hover {
+        background: #f0f0f0;
+      }
+
+      /* Status bar */
+      .status-bar {
+        background: rgba(80, 128, 141, 0.08);
+        color: var(--foreground);
+        padding: 8px 16px;
+        font-size: 13px;
+        text-align: center;
+        font-weight: 500;
+        border-top: 1px solid rgba(80, 128, 141, 0.15);
+      }
+
+      .message-text {
+        color: #111827;
+      }
+
+      .text-muted-foreground {
+        color: #475069;
+      }
+
+      /* Video aspect ratio: landscape 3:2 (width:height) */
+      #webcam {
+        width: 100%;
+        max-width: 180px;
+        aspect-ratio: 3 / 2;
+        object-fit: cover;
+      }
+
+      /* Topic display panel */
+      #topicPanel {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(80, 128, 141, 0.3);
+        border-radius: 12px;
+        padding: 16px 20px;
+        overflow-y: auto;
+        width: 100%;
+        max-width: 360px;
+        max-height: 300px;
+      }
+
+      #topicPanel .topic-title {
+        color: #1a1a1a;
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      #topicPanel .topic-content {
+        color: #2c2c2c;
+        font-size: 14px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+      }
+
+      /* Pulsing animation for recording state */
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.7;
+          transform: scale(1.1);
+        }
+      }
+      .pulse-animation {
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+
+      /* Thinking spinner */
+      .thinking-spinner {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(80, 128, 141, 0.3);
+        border-top-color: #50808d;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      .thinking-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        color: #475069;
+        font-size: 14px;
+      }
+
+      /* Start button disabled state */
+      #enableBtn:disabled {
+        background: #9ca3af !important;
+        cursor: not-allowed !important;
+        opacity: 0.5;
+        transform: none !important;
+      }
+
+      #enableBtn:disabled:hover {
+        transform: none !important;
+        scale: 1 !important;
+      }
+
+      /* Record button disabled state */
+      #speakBtn:disabled {
+        background-color: #9ca3af !important;
+        cursor: not-allowed !important;
+        opacity: 0.5;
+        transform: none !important;
+      }
+
+      #speakBtn:disabled:hover {
+        transform: none !important;
+        scale: 1 !important;
+      }
+    </style>
+  </head>
+  <body class="h-screen flex flex-col overflow-hidden">
+    <!-- Header -->
+    <header
+      class="bg-card border-b border-border px-8 py-5 flex justify-between items-center"
+    >
+      <div class="flex items-center gap-3">
+        <img
+          src="/logo.jpg"
+          alt="VocalAI"
+          class="w-14 h-14 rounded-full shadow-lg"
+        />
+        <h1
+          class="text-2xl font-semibold tracking-tight"
+          style="color: #ffffff"
+        >
+          VocalAI - Problem Solving & Critical Thinking Oral Exam
+        </h1>
+      </div>
+      <button
+        id="connectionStatus"
+        type="button"
+        class="w-10 h-10 rounded-full flex items-center justify-center bg-red-500/15 border border-red-500/30 transition-colors cursor-pointer"
+        title="Disconnected"
+      >
+        <i
+          id="connectionIcon"
+          data-lucide="power"
+          width="20"
+          height="20"
+          stroke-width="2"
+          class="text-red-400"
+        ></i>
+      </button>
+    </header>
+
+    <!-- Main Container -->
+    <div class="flex-1 flex overflow-hidden">
+      <!-- Video Container -->
+      <div
+        id="videoContainer"
+        class="flex-1 flex flex-col bg-background border-r border-border p-2"
+      >
+        <!-- Video + Topic wrapper - centered with gap -->
+        <div class="flex flex-col items-center justify-center h-full gap-4">
+          <!-- Video wrapper with relative for button positioning -->
+          <div class="flex flex-col items-center gap-2">
+            <div class="relative">
+              <video
+                id="webcam"
+                autoplay
+                playsinline
+                muted
+                class="object-contain hidden rounded-xl shadow-2xl"
+              ></video>
+              <canvas id="frame-canvas" class="hidden"></canvas>
+
+              <!-- No Camera View -->
+              <div
+                id="noCameraView"
+                class="text-center bg-card rounded-xl shadow-soft w-full max-w-md mx-auto p-8"
+              >
+                <h2
+                  class="text-3xl font-semibold mb-3"
+                  style="color: var(--foreground)"
+                >
+                  Permission Required
+                </h2>
+                <p
+                  class="mb-7 text-base"
+                  style="color: var(--muted-foreground)"
+                >
+                  Select your camera, microphone and preferred examiner. Then
+                  press the green start button to begin your oral examination.
+                </p>
+
+                <div class="mb-5 w-full">
+                  <div class="flex items-center gap-3">
+                    <i
+                      data-lucide="camera"
+                      width="20"
+                      height="20"
+                      stroke-width="2"
+                      class="flex-shrink-0"
+                      style="color: var(--muted-foreground)"
+                    ></i>
+                    <select
+                      id="cameraSelect"
+                      class="flex-1 min-w-0 px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm overflow-hidden text-ellipsis"
+                      style="max-width: calc(100% - 32px)"
+                    >
+                      <option value="">Loading cameras...</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="mb-5 w-full">
+                  <div class="flex items-center gap-3">
+                    <i
+                      data-lucide="mic"
+                      width="20"
+                      height="20"
+                      stroke-width="2"
+                      class="flex-shrink-0"
+                      style="color: var(--muted-foreground)"
+                    ></i>
+                    <select
+                      id="micSelect"
+                      class="flex-1 min-w-0 px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm overflow-hidden text-ellipsis"
+                      style="max-width: calc(100% - 32px)"
+                    >
+                      <option value="">Loading microphones...</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="mb-7 w-full">
+                  <div class="flex items-center gap-3">
+                    <div class="relative flex-shrink-0 w-5 h-5">
+                      <i
+                        id="voiceIcon"
+                        data-lucide="volume-2"
+                        width="20"
+                        height="20"
+                        stroke-width="2"
+                        class="absolute inset-0 m-auto"
+                        style="color: var(--muted-foreground)"
+                      ></i>
+                      <span
+                        id="voiceSpinner"
+                        class="voice-spinner hidden"
+                        aria-hidden="true"
+                      ></span>
+                    </div>
+                    <select
+                      id="voiceSelect"
+                      onchange="handleVoiceChange()"
+                      class="flex-1 min-w-0 px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm overflow-hidden text-ellipsis"
+                      style="max-width: calc(100% - 32px)"
+                    >
+                      <!-- <option value="No voice" selected>No voice (text only)</option> -->
+                      <option value="Ava Song" selected>Female Examiner</option>
+                      <!-- <option value="Cool Journalist">
+                  Female 2 - young, energetic, friendly
+                </option>
+                <option value="Serene Assistant">
+                  Female 3 - serene, soft, gentle
+                </option> -->
+                      <option value="Deep Male Conversational Voice">
+                        Male Examiner
+                      </option>
+                      <!-- <option value="Soft Male Conversationalist">
+                  Male 2 - young, calm, polite
+                </option>
+
+                <option value="Booming American Narrator">
+                  Male 3 - mature, authoritative, warm
+                </option> -->
+                    </select>
+                  </div>
+                </div>
+
+                <div class="flex justify-center">
+                  <button
+                    id="enableBtn"
+                    onclick="startExam()"
+                    class="w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg transform hover:scale-105"
+                    style="
+                      background: linear-gradient(135deg, #2f6c67, #45cfc6);
+                    "
+                    title="Start Exam"
+                  >
+                    <i
+                      id="startExamIcon"
+                      data-lucide="play-circle"
+                      width="32"
+                      height="32"
+                      stroke-width="2"
+                      class="text-white"
+                    ></i>
+                    <span
+                      id="startExamSpinner"
+                      class="start-exam-spinner hidden"
+                      aria-hidden="true"
+                    ></span>
+                  </button>
+                </div>
+              </div>
+              <!-- Close noCameraView -->
+
+              <!-- Control Buttons (Bottom of video) -->
+              <div
+                id="controlButtons"
+                class="absolute bottom-2 left-1/2 -translate-x-1/2 hidden flex gap-3"
+              >
+                <!-- <button
+                id="toggleVideoBtn"
+                onclick="toggleVideo()"
+                class="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:opacity-90 transition-all shadow-lg"
+                title="Toggle Camera"
+              >
+                <i
+                  id="videoIcon"
+                  data-lucide="video"
+                  width="16"
+                  height="16"
+                  stroke-width="2"
+                  class="text-foreground"
+                ></i>
+              </button>
+              <button
+                id="toggleMicBtn"
+                onclick="toggleMic()"
+                class="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:opacity-90 transition-all shadow-lg"
+                title="Toggle Microphone"
+              >
+                <i
+                  id="micIcon"
+                  data-lucide="mic"
+                  width="16"
+                  height="16"
+                  stroke-width="2"
+                  class="text-foreground"
+                ></i>
+              </button> -->
+                <button
+                  id="speakBtn"
+                  onclick="toggleSpeak()"
+                  class="w-8 h-8 rounded-full flex items-center justify-center transition-transform shadow-lg disabled:opacity-40 disabled:cursor-not-allowed hover:scale-110"
+                  style="background-color: #22c55e"
+                >
+                  <i
+                    id="recordIcon"
+                    data-lucide="circle"
+                    width="14"
+                    height="14"
+                    stroke-width="0"
+                    class="text-white"
+                    style="fill: white"
+                  ></i>
+                </button>
+              </div>
+            </div>
+            <!-- Close relative video container -->
+
+            <!-- Instructional text below video -->
+            <div
+              id="recordInstruction"
+              class="hidden text-center text-sm text-muted-foreground"
+              style="color: var(--foreground)"
+            >
+              Click record to speak and again to send your response
+            </div>
+
+            <!-- Exam Timer -->
+            <div
+              id="examTimer"
+              class="hidden text-center mt-3 px-4 py-2 rounded-lg"
+              style="
+                background: rgba(80, 128, 141, 0.1);
+                border: 1px solid rgba(80, 128, 141, 0.3);
+              "
+            >
+              <div
+                class="text-xs uppercase tracking-wide"
+                style="color: #6b7280; font-weight: 500"
+              >
+                Exam Duration
+              </div>
+              <div
+                class="text-2xl font-mono font-bold mt-1"
+                style="color: #50808d"
+                id="timerDisplay"
+              >
+                00:00
+              </div>
+            </div>
+          </div>
+          <!-- Close video wrapper -->
+
+          <!-- Topic Panel (displayed below video) -->
+          <div id="topicPanel" class="hidden">
+            <div class="topic-title" id="topicTitle">Examination Topic</div>
+            <div class="topic-content" id="topicContent"></div>
+          </div>
+        </div>
+        <!-- Close video + topic wrapper -->
+      </div>
+      <!-- Close video container -->
+
+      <!-- Resize Handle (hidden on small screens where layout is vertical) -->
+      <div
+        id="resizeHandle"
+        class="resize-handle hidden md:block text-white"
+      ></div>
+
+      <!-- Chat Container -->
+      <div
+        id="chatContainer"
+        class="flex-1 md:flex-none md:w-[600px] bg-white flex flex-col"
+      >
+        <!-- Messages -->
+        <div id="messages" class="flex-1 overflow-y-auto p-6 space-y-4">
+          <!-- Messages will be added here dynamically -->
+        </div>
+
+        <!-- Status Bar (for "Thinking..." etc) - positioned above input -->
+        <div
+          id="statusBar"
+          class="hidden px-6 py-2 text-sm text-muted-foreground italic"
+        >
+          <span id="statusText"></span>
+          <span id="statusTime" class="ml-2 font-mono text-xs"></span>
+        </div>
+
+        <!-- Emotion Status Bar -->
+        <div
+          id="emotionBar"
+          class="hidden px-6 py-2 text-xs text-muted-foreground border-t border-border space-y-1"
+        >
+          <div id="videoEmotionRow" class="hidden flex items-center gap-3">
+            <span
+              class="font-semibold flex items-center gap-2 w-16 flex-shrink-0"
+            >
+              <i
+                data-lucide="video"
+                width="12"
+                height="12"
+                stroke-width="1.5"
+              ></i>
+              <span>Video:</span>
+            </span>
+            <span id="videoEmotionText" class="flex-1">-</span>
+            <span id="videoMoodText" class="flex-1">-</span>
+            <span id="videoSentimentText" class="flex-1">-</span>
+          </div>
+          <div id="audioEmotionRow" class="hidden flex items-center gap-3">
+            <span
+              class="font-semibold flex items-center gap-2 w-16 flex-shrink-0"
+            >
+              <i
+                data-lucide="mic"
+                width="12"
+                height="12"
+                stroke-width="1.5"
+              ></i>
+              <span>Audio:</span>
+            </span>
+            <span id="audioEmotionText" class="flex-1">-</span>
+            <span id="audioMoodText" class="flex-1">-</span>
+            <span id="audioSentimentText" class="flex-1">-</span>
+          </div>
+        </div>
+
+        <!-- Text Input -->
+        <div id="inputPanel" class="border-t border-border p-4">
+          <div
+            id="inputPlaceholder"
+            class="flex items-center justify-center gap-3 py-3"
+          >
+            <div class="flex justify-center">
+              <button
+                id="enableBtn"
+                onclick="startExam()"
+                class="w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg transform hover:scale-105"
+                style="background: linear-gradient(135deg, #2f6c67, #45cfc6)"
+                title="Start Exam"
+              >
+                <i
+                  data-lucide="play-circle"
+                  width="32"
+                  height="32"
+                  stroke-width="2"
+                  class="text-white"
+                ></i>
+              </button>
+            </div>
+            <span class="text-sm text-muted-foreground">
+              Press the start button to begin
+            </span>
+          </div>
+          <div id="inputWrapper" class="hidden">
+            <div>
+              <input
+                type="text"
+                id="textInput"
+                placeholder="Type your response..."
+                class="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <div class="text-xs text-muted-foreground mt-1 pl-2">
+                Press Enter to send
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/config.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+      // Backend WebSocket URL - defaults to localhost if config.js not loaded
+      const BACKEND_URL = window.VOCALAI_BACKEND_URL || "http://localhost:5443";
+    </script>
+    <script>
+      let socket;
+      let isConnected = false;
+      let videoStream;
+      let isListening = false;
+      let mediaRecorder;
+      let audioChunks = [];
+      let isResizing = false;
+      let initialChatWidth = 450;
+      let frameCaptureInterval = null;
+      let videoEnabled = true;
+      let micEnabled = true;
+      let currentVoiceAudio = null;
+      let audioContextUnlocked = false;
+      let isAISpeaking = false; // Track if AI audio is currently playing
+
+      // Exam timer
+      let examStartTime = null;
+      let examTimerInterval = null;
+
+      // Session ID - created once per page load, reused on reconnections
+      let sessionId = null;
+      let initialContextLoaded = false;
+
+      // Store video and audio emotion data separately
+      let videoEmotions = null;
+      let audioEmotions = null;
+
+      // Accumulate video emotions during recording for averaging
+      let videoEmotionHistory = [];
+      let isRecordingSession = false;
+
+      // Track if welcome voice sample has been played (required before exam can start)
+      let welcomeVoicePlayed = false;
+      let welcomeVoicePlaying = false;
+
+      // Play welcome voice sample on first user interaction (required by browser autoplay policy)
+      async function playWelcomeVoiceOnInteraction(e) {
+        if (welcomeVoicePlayed || welcomeVoicePlaying) return;
+
+        // If clicking start button before welcome played, play welcome first and block start
+        const isStartButton = e.target.closest("#enableBtn");
+        if (isStartButton) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        welcomeVoicePlaying = true;
+        document.removeEventListener(
+          "click",
+          playWelcomeVoiceOnInteraction,
+          true
+        );
+        document.removeEventListener(
+          "keydown",
+          playWelcomeVoiceOnInteraction,
+          true
+        );
+
+        try {
+          await handleVoiceChange({ playSample: true });
+          welcomeVoicePlayed = true;
+        } catch (err) {
+          welcomeVoicePlayed = true; // Allow start even if voice fails
+        } finally {
+          welcomeVoicePlaying = false;
+        }
+      }
+
+      // Wrapper for enableCamera that checks if welcome voice has played
+      async function startExam() {
+        const startIcon = document.getElementById("startExamIcon");
+        const startSpinner = document.getElementById("startExamSpinner");
+        const enableBtn = document.getElementById("enableBtn");
+
+        // Show spinner, hide icon, disable button
+        if (startIcon) startIcon.classList.add("hidden");
+        if (startSpinner) startSpinner.classList.remove("hidden");
+        if (enableBtn) enableBtn.disabled = true;
+
+        try {
+          if (!welcomeVoicePlayed) {
+            // Play welcome voice first, then start
+            welcomeVoicePlaying = true;
+            await handleVoiceChange({ playSample: true });
+            welcomeVoicePlayed = true;
+          }
+          await enableCamera();
+        } catch (err) {
+          welcomeVoicePlayed = true; // Allow retry
+        } finally {
+          welcomeVoicePlaying = false;
+          // Hide spinner, show icon (button will be hidden after camera starts anyway)
+          if (startIcon) startIcon.classList.remove("hidden");
+          if (startSpinner) startSpinner.classList.add("hidden");
+          if (enableBtn) enableBtn.disabled = false;
+        }
+      }
+
+      // Load microphones on load (but don't auto-connect)
+      window.addEventListener("load", async () => {
+        await loadDeviceOptions();
+        setupResizeHandle();
+        lucide.createIcons();
+        setVoiceIconActive(true);
+        setupConnectionToggle();
+
+        // Browser autoplay policy requires user interaction before playing audio
+        // Use capture phase to intercept clicks before they reach the start button
+        document.addEventListener("click", playWelcomeVoiceOnInteraction, true);
+        document.addEventListener(
+          "keydown",
+          playWelcomeVoiceOnInteraction,
+          true
+        );
+      });
+
+      function setupResizeHandle() {
+        const handle = document.getElementById("resizeHandle");
+        const chatContainer = document.getElementById("chatContainer");
+
+        handle.addEventListener("mousedown", (e) => {
+          isResizing = true;
+          document.body.style.cursor = "ew-resize";
+          document.body.style.userSelect = "none";
+        });
+
+        document.addEventListener("mousemove", (e) => {
+          if (!isResizing) return;
+
+          const newWidth = window.innerWidth - e.clientX;
+          if (newWidth >= 300 && newWidth <= 800) {
+            chatContainer.style.width = newWidth + "px";
+          }
+        });
+
+        document.addEventListener("mouseup", () => {
+          isResizing = false;
+          document.body.style.cursor = "";
+          document.body.style.userSelect = "";
+        });
+      }
+
+      async function loadDeviceOptions() {
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const audioInputs = devices.filter(
+            (device) => device.kind === "audioinput"
+          );
+          const videoInputs = devices.filter(
+            (device) => device.kind === "videoinput"
+          );
+
+          const micSelect = document.getElementById("micSelect");
+          if (micSelect) {
+            micSelect.innerHTML = "";
+            if (audioInputs.length === 0) {
+              const option = document.createElement("option");
+              option.value = "";
+              option.textContent = "No microphones found";
+              micSelect.appendChild(option);
+              micSelect.disabled = true;
+            } else {
+              micSelect.disabled = false;
+              audioInputs.forEach((device, index) => {
+                const option = document.createElement("option");
+                option.value = device.deviceId;
+                option.text = device.label || `Microphone ${index + 1}`;
+                micSelect.appendChild(option);
+              });
+            }
+          }
+
+          const cameraSelect = document.getElementById("cameraSelect");
+          if (cameraSelect) {
+            cameraSelect.innerHTML = "";
+            if (videoInputs.length === 0) {
+              const option = document.createElement("option");
+              option.value = "";
+              option.textContent = "No cameras found";
+              cameraSelect.appendChild(option);
+              cameraSelect.disabled = true;
+            } else {
+              cameraSelect.disabled = false;
+              videoInputs.forEach((device, index) => {
+                const option = document.createElement("option");
+                option.value = device.deviceId;
+                option.text = device.label || `Camera ${index + 1}`;
+                cameraSelect.appendChild(option);
+              });
+            }
+          }
+        } catch (error) {
+          console.error("Error loading devices:", error);
+        }
+      }
+
+      function showDevicePanel() {
+        const panel = document.getElementById("devicePanel");
+        if (panel) {
+          panel.classList.remove("hidden");
+        }
+      }
+
+      function hideDevicePanel() {
+        const panel = document.getElementById("devicePanel");
+        if (panel) {
+          panel.classList.add("hidden");
+        }
+      }
+
+      function setVoiceIconActive(active) {
+        const voiceIcon = document.getElementById("voiceIcon");
+        if (!voiceIcon) return;
+        voiceIcon.classList.toggle("opacity-100", active);
+        voiceIcon.classList.toggle("opacity-30", !active);
+      }
+
+      function unlockAudioContext() {
+        if (audioContextUnlocked) {
+          return;
+        }
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) {
+          audioContextUnlocked = true;
+          return;
+        }
+
+        const context = new AudioContext();
+        context.resume().finally(() => {
+          audioContextUnlocked = true;
+        });
+      }
+
+      function setVoiceLoadingState(loading) {
+        const spinner = document.getElementById("voiceSpinner");
+        const icon = document.getElementById("voiceIcon");
+        const statusButton = document.getElementById("connectionStatus");
+        const micSelect = document.getElementById("micSelect");
+        const voiceSelect = document.getElementById("voiceSelect");
+        const cameraSelect = document.getElementById("cameraSelect");
+
+        if (spinner) {
+          spinner.classList.toggle("hidden", !loading);
+        }
+        if (icon) {
+          icon.classList.toggle("opacity-0", loading);
+          icon.classList.toggle("pointer-events-none", loading);
+        }
+
+        const toggleDisabled = (el) => {
+          if (el) {
+            el.disabled = loading;
+          }
+        };
+
+        toggleDisabled(statusButton);
+        // Handle both start buttons (duplicate IDs)
+        document.querySelectorAll("#enableBtn").forEach((btn) => {
+          btn.disabled = loading;
+        });
+        toggleDisabled(micSelect);
+        toggleDisabled(voiceSelect);
+        toggleDisabled(cameraSelect);
+      }
+
+      function setupConnectionToggle() {
+        const statusButton = document.getElementById("connectionStatus");
+        if (!statusButton) return;
+
+        statusButton.addEventListener("click", () => {
+          if (isConnected) {
+            // Disconnect and return to start state
+            disconnectAndReset();
+          } else {
+            enableCamera();
+          }
+        });
+      }
+
+      function disconnectAndReset() {
+        // Disconnect socket
+        if (socket) {
+          socket.disconnect();
+        }
+
+        // Stop all media tracks (camera and mic)
+        if (videoStream) {
+          videoStream.getTracks().forEach((track) => track.stop());
+          videoStream = null;
+        }
+
+        // Stop frame capture if running
+        if (frameCaptureInterval) {
+          clearInterval(frameCaptureInterval);
+          frameCaptureInterval = null;
+        }
+
+        // Stop any recording
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+          mediaRecorder.stop();
+        }
+        isListening = false;
+        isRecordingSession = false;
+
+        // Reset UI to start state
+        const webcam = document.getElementById("webcam");
+        const noCameraView = document.getElementById("noCameraView");
+        const controlButtons = document.getElementById("controlButtons");
+
+        if (webcam) {
+          webcam.srcObject = null;
+          webcam.classList.add("hidden");
+        }
+        if (noCameraView) {
+          noCameraView.classList.remove("hidden");
+        }
+        if (controlButtons) {
+          controlButtons.classList.add("hidden");
+        }
+
+        // Hide instructional text
+        const recordInstruction = document.getElementById("recordInstruction");
+        if (recordInstruction) {
+          recordInstruction.classList.add("hidden");
+        }
+
+        // Reset exam timer
+        resetExamTimer();
+
+        // Reset state variables
+        videoEnabled = true;
+        micEnabled = true;
+        sessionId = null;
+        initialContextLoaded = false;
+
+        // Clear messages
+        const messages = document.getElementById("messages");
+        if (messages) {
+          messages.innerHTML = "";
+        }
+
+        // Clear emotion data
+        videoEmotions = null;
+        audioEmotions = null;
+        videoEmotionHistory = [];
+        updateEmotionDisplay();
+
+        // Hide status bar
+        hideStatus();
+
+        // Hide topic panel
+        hideExamScenario();
+      }
+
+      async function handleVoiceChange({ playSample = true } = {}) {
+        const voiceSelect = document.getElementById("voiceSelect");
+        if (!voiceSelect) return;
+
+        unlockAudioContext();
+
+        const selectedVoice = voiceSelect.value;
+
+        if (selectedVoice === "No voice") {
+          setVoiceIconActive(false);
+          return;
+        }
+
+        setVoiceIconActive(true);
+
+        if (playSample) {
+          await playVoiceSample(selectedVoice);
+        }
+      }
+
+      async function playVoiceSample(voice) {
+        const voiceIcon = document.getElementById("voiceIcon");
+        const voiceSelect = document.getElementById("voiceSelect");
+
+        if (!voiceSelect || !voiceIcon) {
+          return;
+        }
+
+        if (currentVoiceAudio) {
+          currentVoiceAudio.pause();
+          currentVoiceAudio.currentTime = 0;
+        }
+
+        // Map Hume voice names to friendly names
+        const voiceNameMap = {
+          "Ava Song": "the Examiner",
+          "Deep Male Conversational Voice": "the Examiner",
+          "Serene Assistant": "the Examiner",
+          "Soft Male Conversationalist": "the Examiner",
+          "Cool Journalist": "the Examiner",
+          "Booming American Narrator": "the Examiner",
+        };
+
+        const friendlyName = voiceNameMap[voice] || voice.split(" ")[0];
+
+        setVoiceLoadingState(true);
+        try {
+          const response = await fetch(
+            `${BACKEND_URL}/api/voice-sample`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                voice: voice,
+                text:
+                  "Hello, I'm " +
+                  friendlyName +
+                  ", for your problem solving and critical thinking assessment. Select your camera, microphone, and preferred examiner voice. Then press the green start button when you are ready to begin.",
+              }),
+            }
+          );
+
+          const data = await response.json();
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.error || "Voice sample request failed");
+          }
+
+          const audioBase64 = data.audio;
+          const audioBlob = await fetch(
+            `data:audio/mpeg;base64,${audioBase64}`
+          ).then((res) => res.blob());
+          const audioUrl = URL.createObjectURL(audioBlob);
+          const audio = new Audio(audioUrl);
+          currentVoiceAudio = audio;
+
+          const resetVoiceControls = () => {
+            voiceIcon.classList.remove("pulse-animation");
+            if (currentVoiceAudio === audio) {
+              currentVoiceAudio = null;
+            }
+            URL.revokeObjectURL(audioUrl);
+          };
+
+          await new Promise((resolve, reject) => {
+            const onReady = () => {
+              cleanup();
+              resolve();
+            };
+            const onError = (event) => {
+              cleanup();
+              reject(event);
+            };
+            const cleanup = () => {
+              audio.removeEventListener("canplaythrough", onReady);
+              audio.removeEventListener("error", onError);
+            };
+            audio.addEventListener("canplaythrough", onReady);
+            audio.addEventListener("error", onError);
+          });
+
+          audio.onended = () => {
+            resetVoiceControls();
+            // Re-enable all start buttons after voice sample completes
+            document.querySelectorAll("#enableBtn").forEach((btn) => {
+              btn.disabled = false;
+            });
+          };
+
+          audio.onerror = (e) => {
+            console.error("[VoiceSample] Audio playback error:", e);
+            resetVoiceControls();
+            // Re-enable all start buttons on error
+            document.querySelectorAll("#enableBtn").forEach((btn) => {
+              btn.disabled = false;
+            });
+          };
+
+          // Disable all start buttons while voice sample is playing
+          document.querySelectorAll("#enableBtn").forEach((btn) => {
+            btn.disabled = true;
+          });
+
+          await audio.play();
+        } catch (error) {
+          console.error("[VoiceSample] Error:", error);
+          if (currentVoiceAudio) {
+            currentVoiceAudio = null;
+          }
+          // Re-enable all start buttons on error
+          document.querySelectorAll("#enableBtn").forEach((btn) => {
+            btn.disabled = false;
+          });
+          // Re-throw so caller can handle (e.g., for autoplay fallback)
+          throw error;
+        } finally {
+          setVoiceLoadingState(false);
+        }
+      }
+
+      function connectWebSocket() {
+        socket = io(BACKEND_URL);
+
+        socket.on("connect", () => {
+          updateConnectionStatus(true);
+          sessionId = null;
+          initialContextLoaded = false;
+        });
+
+        socket.on("session-assigned", (data) => {
+          sessionId = data.sessionId;
+          if (!initialContextLoaded) {
+            loadInitialContext();
+            initialContextLoaded = true;
+          }
+        });
+
+        socket.on("disconnect", () => {
+          updateConnectionStatus(false);
+        });
+
+        socket.on("transcript", (data) => {
+          // Update last user message with transcript
+          const messages = document.getElementById("messages");
+          const lastMessage = messages.lastElementChild;
+          if (lastMessage && lastMessage.dataset.role === "user") {
+            const textDiv = lastMessage.querySelector(".message-text");
+            if (textDiv) {
+              textDiv.textContent = data.text;
+            }
+          }
+
+          // Show status
+          showStatus("Thinking...");
+        });
+
+        socket.on("text-message-received", (data) => {
+          // For text messages, show them immediately
+          addMessage("user", data.text);
+          showStatus("Thinking...");
+        });
+
+        socket.on("examiner-response", (data) => {
+          // Check if voice is enabled
+          const voiceSelect = document.getElementById("voiceSelect");
+          const voiceEnabled = voiceSelect && voiceSelect.value !== "No voice";
+
+          // Show immediately if: no voice enabled OR final assessment (no audio will come)
+          if (voiceEnabled && !data.isFinalAssessment) {
+            // Store message and show spinner - will display when audio starts
+            pendingExaminerMessage = data.message;
+            showThinkingSpinner("Preparing response...");
+          } else {
+            // No voice OR final assessment - show message immediately
+            hideStatus();
+            addMessage("assistant", data.message);
+
+            // Stop timer when final assessment is delivered
+            if (data.isFinalAssessment) {
+              stopExamTimer();
+            }
+          }
+        });
+
+        // Streaming audio playback - accumulate chunks and play when complete
+        let audioChunks = [];
+        let isCollectingAudio = false;
+        let pendingExaminerMessage = null; // Store message until audio plays
+
+        socket.on("examiner-audio-chunk", (data) => {
+          // Check if voice is enabled (not set to "No voice")
+          const voiceSelect = document.getElementById("voiceSelect");
+          if (!voiceSelect || voiceSelect.value === "No voice") {
+            return;
+          }
+
+          try {
+            if (data.isFirst) {
+              audioChunks = []; // Reset chunks
+              isCollectingAudio = true;
+            }
+
+            // Collect chunk
+            audioChunks.push(data.chunk);
+          } catch (error) {
+            console.error("[VideoChat] Error processing audio chunk:", error);
+          }
+        });
+
+        socket.on("examiner-audio-complete", (data) => {
+          // Check if voice is enabled
+          const voiceSelect = document.getElementById("voiceSelect");
+          if (!voiceSelect || voiceSelect.value === "No voice") {
+            return;
+          }
+
+          if (isCollectingAudio && audioChunks.length > 0) {
+            try {
+              const completeAudio = audioChunks.join("");
+
+              const audioElement = new Audio(
+                `data:audio/mpeg;base64,${completeAudio}`
+              );
+
+              audioElement.addEventListener("playing", () => {
+                isAISpeaking = true;
+                updateRecordButtonState();
+
+                // Now show the pending message since audio started
+                if (pendingExaminerMessage) {
+                  hideThinkingSpinner();
+                  hideStatus();
+                  addMessage("assistant", pendingExaminerMessage);
+                  pendingExaminerMessage = null;
+                }
+              });
+
+              audioElement.addEventListener("ended", () => {
+                isAISpeaking = false;
+                updateRecordButtonState();
+
+                // Stop timer when final assessment audio completes
+                if (data.isFinalAssessment) {
+                  stopExamTimer();
+                }
+              });
+
+              audioElement.addEventListener("error", (e) => {
+                console.error("[VideoChat] Audio playback error:", e);
+                isAISpeaking = false;
+                updateRecordButtonState();
+                // Show message anyway if audio fails
+                if (pendingExaminerMessage) {
+                  hideThinkingSpinner();
+                  hideStatus();
+                  addMessage("assistant", pendingExaminerMessage);
+                  pendingExaminerMessage = null;
+                }
+
+                // Stop timer if final assessment audio fails
+                if (data.isFinalAssessment) {
+                  stopExamTimer();
+                }
+              });
+
+              audioElement.play().catch((err) => {
+                console.error("[VideoChat] Failed to play audio:", err);
+                isAISpeaking = false;
+                updateRecordButtonState();
+                // Show message anyway if audio fails
+                if (pendingExaminerMessage) {
+                  hideThinkingSpinner();
+                  hideStatus();
+                  addMessage("assistant", pendingExaminerMessage);
+                  pendingExaminerMessage = null;
+                }
+
+                // Stop timer if final assessment audio fails to play
+                if (data.isFinalAssessment) {
+                  stopExamTimer();
+                }
+              });
+
+              // Reset state
+              audioChunks = [];
+              isCollectingAudio = false;
+            } catch (error) {
+              console.error("[VideoChat] Error playing complete audio:", error);
+            }
+          }
+        });
+
+        socket.on("processing-error", (data) => {
+          showStatus(`Error: ${data.error}`);
+
+          // Re-enable record button on error
+          const speakBtn = document.getElementById("speakBtn");
+          if (speakBtn && !isListening) {
+            speakBtn.disabled = !videoEnabled && !micEnabled;
+          }
+
+          // Remove "Transcribing..." user message if it exists
+          const messages = document.getElementById("messages");
+          const lastMessage = messages.lastElementChild;
+          if (lastMessage && lastMessage.dataset.role === "user") {
+            const textDiv = lastMessage.querySelector(".message-text");
+            if (textDiv && textDiv.textContent === "Transcribing...") {
+              messages.removeChild(lastMessage);
+            }
+          }
+        });
+
+        socket.on("behavioral-cues", (data) => {
+          // Accumulate emotions during recording for averaging
+          if (isRecordingSession && isListening) {
+            videoEmotionHistory.push(data);
+          }
+
+          // Show real-time updates during recording
+          videoEmotions = data;
+          updateEmotionDisplay();
+        });
+
+        socket.on("audio-emotions", (data) => {
+          audioEmotions = data;
+          updateEmotionDisplay();
+        });
+
+        // Display examination scenario/topic when received
+        socket.on("exam-scenario", (data) => {
+          displayExamScenario(data.topic, data.scenario);
+        });
+
+        // Display CT assessment in console (only logging we keep)
+        socket.on("ct-assessment", (data) => {
+          console.log("=== CT ASSESSMENT ===");
+          console.log(
+            `Turn ${data.turnNumber} | Overall Score: ${data.scores.overallScore}%`
+          );
+          console.log(
+            `Analysing Arguments: ${data.scores.analysingArguments}%`
+          );
+          console.log(`Judging Relevance: ${data.scores.judgingRelevance}%`);
+          console.log(`Evaluating Claims: ${data.scores.evaluatingClaims}%`);
+          console.log(
+            `Constructing Arguments: ${data.scores.constructingArguments}%`
+          );
+          console.log(`Forming Judgements: ${data.scores.formingJudgements}%`);
+          console.log(`Notes: ${data.scores.examinerNotes}`);
+          console.log("====================\n");
+        });
+      }
+
+      function ensureWebSocketConnection() {
+        if (socket) {
+          if (socket.connected) {
+            return;
+          }
+
+          if (socket.disconnected) {
+            socket.connect();
+            return;
+          }
+        }
+
+        connectWebSocket();
+      }
+
+      function toggleChatInput(visible) {
+        const placeholder = document.getElementById("inputPlaceholder");
+        const wrapper = document.getElementById("inputWrapper");
+        if (!placeholder || !wrapper) {
+          return;
+        }
+
+        if (visible) {
+          wrapper.classList.remove("hidden");
+          placeholder.classList.add("hidden");
+          const textInput = document.getElementById("textInput");
+          if (textInput) {
+            textInput.focus();
+          }
+        } else {
+          wrapper.classList.add("hidden");
+          placeholder.classList.remove("hidden");
+        }
+      }
+
+      function updateConnectionStatus(connected) {
+        isConnected = connected;
+        const status = document.getElementById("connectionStatus");
+        const icon = document.getElementById("connectionIcon");
+
+        status.className =
+          "w-10 h-10 rounded-full flex items-center justify-center transition-colors";
+        status.title = connected ? "Connected" : "Disconnected";
+        status.style.backgroundColor = connected
+          ? "rgba(80, 128, 141, 0.15)"
+          : "rgba(220, 38, 38, 0.15)";
+        status.style.border = connected
+          ? "1px solid rgba(80, 128, 141, 0.4)"
+          : "1px solid rgba(220, 38, 38, 0.4)";
+        icon.style.color = connected ? "#50808D" : "#dc2626";
+
+        lucide.createIcons();
+        toggleChatInput(connected);
+        if (connected) {
+          hideDevicePanel();
+        } else {
+          showDevicePanel();
+        }
+      }
+
+      let statusStartTime = null;
+      let statusUpdateInterval = null;
+
+      function showStatus(text, autohideDuration = null) {
+        const statusBar = document.getElementById("statusBar");
+        const statusText = document.getElementById("statusText");
+        const statusTime = document.getElementById("statusTime");
+
+        statusText.textContent = text;
+        statusStartTime = Date.now();
+        statusBar.classList.remove("hidden");
+
+        // Disable record button while processing
+        const speakBtn = document.getElementById("speakBtn");
+        if (speakBtn) {
+          speakBtn.disabled = true;
+        }
+
+        // Update elapsed time every 100ms
+        if (statusUpdateInterval) {
+          clearInterval(statusUpdateInterval);
+        }
+        statusUpdateInterval = setInterval(() => {
+          const elapsed = ((Date.now() - statusStartTime) / 1000).toFixed(1);
+          statusTime.textContent = `(${elapsed}s)`;
+        }, 100);
+
+        // Auto-hide after duration if specified (in milliseconds)
+        if (autohideDuration) {
+          setTimeout(() => {
+            hideStatus();
+          }, autohideDuration);
+        }
+      }
+
+      function hideStatus() {
+        const statusBar = document.getElementById("statusBar");
+        statusBar.classList.add("hidden");
+
+        // Re-enable record button when processing completes (but not if AI is speaking)
+        const speakBtn = document.getElementById("speakBtn");
+        if (speakBtn && !isListening) {
+          // Only re-enable if not currently recording AND AI is not speaking
+          speakBtn.disabled = (!videoEnabled && !micEnabled) || isAISpeaking;
+        }
+
+        if (statusUpdateInterval) {
+          clearInterval(statusUpdateInterval);
+          statusUpdateInterval = null;
+        }
+      }
+
+      function showThinkingSpinner(text = "Thinking...") {
+        const messagesDiv = document.getElementById("messages");
+
+        // Remove any existing spinner
+        hideThinkingSpinner();
+
+        // Create spinner element
+        const spinnerDiv = document.createElement("div");
+        spinnerDiv.id = "thinkingSpinner";
+        spinnerDiv.className = "thinking-container";
+        spinnerDiv.innerHTML = `
+          <div class="thinking-spinner"></div>
+          <span>${text}</span>
+        `;
+
+        messagesDiv.appendChild(spinnerDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+
+      function hideThinkingSpinner() {
+        const spinner = document.getElementById("thinkingSpinner");
+        if (spinner) {
+          spinner.remove();
+        }
+      }
+
+      function updateEmotionDisplay() {
+        const emotionBar = document.getElementById("emotionBar");
+        const videoRow = document.getElementById("videoEmotionRow");
+        const audioRow = document.getElementById("audioEmotionRow");
+
+        // Don't show bar if no data available
+        if (!videoEmotions && !audioEmotions) {
+          emotionBar.classList.add("hidden");
+          videoRow.classList.add("hidden");
+          audioRow.classList.add("hidden");
+          return;
+        }
+
+        // Update video emotions row
+        if (videoEmotions) {
+          const videoEmotionText = document.getElementById("videoEmotionText");
+          const videoMoodText = document.getElementById("videoMoodText");
+          const videoSentimentText =
+            document.getElementById("videoSentimentText");
+
+          const emotionConfidence = (
+            (videoEmotions.emotion?.confidence || 0) * 100
+          ).toFixed(0);
+          videoEmotionText.textContent = `${
+            videoEmotions.emotion?.primary || "-"
+          } (${emotionConfidence}%)`;
+
+          const moodConfidence = (
+            (videoEmotions.mood?.confidence || 0) * 100
+          ).toFixed(0);
+          videoMoodText.textContent = `${
+            videoEmotions.mood?.primary || "-"
+          } (${moodConfidence}%)`;
+
+          const sentimentScore = (
+            (videoEmotions.sentiment?.score || 0) * 100
+          ).toFixed(0);
+          videoSentimentText.textContent = `${
+            videoEmotions.sentiment?.polarity || "-"
+          } (${sentimentScore > 0 ? "+" : ""}${sentimentScore})`;
+
+          videoRow.classList.remove("hidden");
+        } else {
+          videoRow.classList.add("hidden");
+        }
+
+        // Update audio emotions row
+        if (audioEmotions) {
+          const audioEmotionText = document.getElementById("audioEmotionText");
+          const audioMoodText = document.getElementById("audioMoodText");
+          const audioSentimentText =
+            document.getElementById("audioSentimentText");
+
+          const emotionConfidence = (
+            (audioEmotions.emotion?.confidence || 0) * 100
+          ).toFixed(0);
+          audioEmotionText.textContent = `${
+            audioEmotions.emotion?.primary || "-"
+          } (${emotionConfidence}%)`;
+
+          const moodConfidence = (
+            (audioEmotions.mood?.confidence || 0) * 100
+          ).toFixed(0);
+          audioMoodText.textContent = `${
+            audioEmotions.mood?.primary || "-"
+          } (${moodConfidence}%)`;
+
+          const sentimentScore = (
+            (audioEmotions.sentiment?.score || 0) * 100
+          ).toFixed(0);
+          audioSentimentText.textContent = `${
+            audioEmotions.sentiment?.polarity || "-"
+          } (${sentimentScore > 0 ? "+" : ""}${sentimentScore})`;
+
+          audioRow.classList.remove("hidden");
+        } else {
+          audioRow.classList.add("hidden");
+        }
+
+        // Show emotion bar and create icons
+        emotionBar.classList.remove("hidden");
+        lucide.createIcons();
+      }
+
+      async function loadInitialContext() {
+        if (!sessionId) {
+          return;
+        }
+        // Get selected voice for TTS
+        const voiceSelect = document.getElementById("voiceSelect");
+        const selectedVoice = voiceSelect ? voiceSelect.value : "Ava Song";
+
+        // Request initial context from server (with voice for TTS)
+        showStatus("Preparing examination...");
+        socket.emit("request-initial-context", {
+          sessionId: sessionId,
+          voice: selectedVoice,
+          timestamp: Date.now(),
+        });
+      }
+
+      function sendTextMessage() {
+        const input = document.getElementById("textInput");
+        const text = input.value.trim();
+
+        if (!text) return;
+
+        if (!sessionId) {
+          return;
+        }
+
+        // Clear input
+        input.value = "";
+
+        // Get selected voice for TTS
+        const voiceSelect = document.getElementById("voiceSelect");
+        const selectedVoice = voiceSelect ? voiceSelect.value : "Ava Song";
+
+        // Send text message to server (with voice for TTS)
+        socket.emit("text-message", {
+          sessionId: sessionId,
+          text: text,
+          voice: selectedVoice,
+          timestamp: Date.now(),
+        });
+
+        // Show user message immediately
+        addMessage("user", text);
+        showStatus("Thinking...");
+      }
+
+      // Add Enter key support for text input
+      document.addEventListener("DOMContentLoaded", () => {
+        const input = document.getElementById("textInput");
+        if (input) {
+          input.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+              sendTextMessage();
+            }
+          });
+        }
+      });
+
+      function buildVideoConstraints() {
+        const cameraSelect = document.getElementById("cameraSelect");
+        const videoConstraints = {
+          width: 720,
+          height: 480,
+          aspectRatio: 3 / 2,
+          facingMode: "user",
+        };
+
+        if (cameraSelect && cameraSelect.value) {
+          videoConstraints.deviceId = { exact: cameraSelect.value };
+        }
+
+        return videoConstraints;
+      }
+
+      async function enableCamera() {
+        try {
+          const micSelect = document.getElementById("micSelect");
+          const selectedMicId = micSelect?.value;
+
+          const constraints = {
+            video: buildVideoConstraints(),
+            audio: selectedMicId
+              ? {
+                  deviceId: { exact: selectedMicId },
+                  echoCancellation: true,
+                  noiseSuppression: true,
+                  autoGainControl: true,
+                  sampleRate: 48000,
+                }
+              : {
+                  echoCancellation: true,
+                  noiseSuppression: true,
+                  autoGainControl: true,
+                  sampleRate: 48000,
+                },
+          };
+
+          videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+          const video = document.getElementById("webcam");
+          video.srcObject = videoStream;
+          video.classList.remove("hidden");
+
+          document.getElementById("noCameraView").classList.add("hidden");
+          document.getElementById("controlButtons").classList.remove("hidden");
+
+          // Show instructional text
+          const recordInstruction =
+            document.getElementById("recordInstruction");
+          if (recordInstruction) {
+            recordInstruction.classList.remove("hidden");
+          }
+
+          // Start exam timer
+          startExamTimer();
+
+          // Set initial disabled state for record button based on whether we're currently processing
+          const speakBtn = document.getElementById("speakBtn");
+          const statusBar = document.getElementById("statusBar");
+          const isProcessing = !statusBar.classList.contains("hidden");
+          speakBtn.disabled = isProcessing || (!videoEnabled && !micEnabled);
+
+          // Show text input immediately when exam starts (don't wait for WebSocket)
+          toggleChatInput(true);
+
+          ensureWebSocketConnection();
+          unlockAudioContext();
+        } catch (error) {
+          console.error("Camera/mic access denied:", error);
+          alert(
+            "Camera or microphone access denied. Please enable permissions and try again."
+          );
+        }
+      }
+
+      async function enableVideoOnly() {
+        try {
+          const micSelect = document.getElementById("micSelect");
+          const selectedMicId = micSelect?.value;
+
+          const constraints = {
+            video: buildVideoConstraints(),
+            audio: selectedMicId
+              ? {
+                  deviceId: { exact: selectedMicId },
+                  echoCancellation: true,
+                  noiseSuppression: true,
+                  autoGainControl: true,
+                  sampleRate: 48000,
+                }
+              : {
+                  echoCancellation: true,
+                  noiseSuppression: true,
+                  autoGainControl: true,
+                  sampleRate: 48000,
+                },
+          };
+
+          videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+          const video = document.getElementById("webcam");
+          video.srcObject = videoStream;
+          video.classList.remove("hidden");
+
+          document.getElementById("noCameraView").classList.add("hidden");
+          document.getElementById("controlButtons").classList.remove("hidden");
+
+          // Enable video, disable mic initially
+          videoEnabled = true;
+          micEnabled = false;
+          const audioTrack = videoStream.getAudioTracks()[0];
+          if (audioTrack) audioTrack.enabled = false;
+
+          // Update toggle button states
+          updateVideoButtonState();
+          updateMicButtonState();
+          updateRecordButtonState();
+        } catch (error) {
+          console.error("Camera access denied:", error);
+          alert(
+            "Camera access denied. Please enable permissions and try again."
+          );
+        }
+      }
+
+      async function enableMicOnly() {
+        try {
+          const micSelect = document.getElementById("micSelect");
+          const selectedMicId = micSelect?.value;
+
+          const constraints = {
+            video: buildVideoConstraints(),
+            audio: selectedMicId
+              ? {
+                  deviceId: { exact: selectedMicId },
+                  echoCancellation: true,
+                  noiseSuppression: true,
+                  autoGainControl: true,
+                  sampleRate: 48000,
+                }
+              : {
+                  echoCancellation: true,
+                  noiseSuppression: true,
+                  autoGainControl: true,
+                  sampleRate: 48000,
+                },
+          };
+
+          videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+          const video = document.getElementById("webcam");
+          video.srcObject = videoStream;
+          video.classList.add("hidden");
+
+          document.getElementById("noCameraView").classList.remove("hidden");
+          document.getElementById("controlButtons").classList.remove("hidden");
+
+          // Disable video, enable mic initially
+          videoEnabled = false;
+          micEnabled = true;
+          const videoTrack = videoStream.getVideoTracks()[0];
+          if (videoTrack) videoTrack.enabled = false;
+
+          // Update toggle button states
+          updateVideoButtonState();
+          updateMicButtonState();
+          updateRecordButtonState();
+        } catch (error) {
+          console.error("Microphone access denied:", error);
+          alert(
+            "Microphone access denied. Please enable permissions and try again."
+          );
+        }
+      }
+
+      function updateVideoButtonState() {
+        const videoBtn = document.getElementById("toggleVideoBtn");
+        const videoIcon = document.getElementById("videoIcon");
+
+        if (!videoBtn || !videoIcon) return;
+
+        if (videoEnabled) {
+          videoBtn.classList.remove("bg-red-500");
+          videoBtn.classList.add("bg-white");
+          videoIcon.classList.remove("text-white");
+          videoIcon.classList.add("text-foreground");
+          videoIcon.setAttribute("data-lucide", "video");
+        } else {
+          videoBtn.classList.remove("bg-white");
+          videoBtn.classList.add("bg-red-500");
+          videoIcon.classList.remove("text-foreground");
+          videoIcon.classList.add("text-white");
+          videoIcon.setAttribute("data-lucide", "video-off");
+        }
+        lucide.createIcons();
+      }
+
+      function updateMicButtonState() {
+        const micBtn = document.getElementById("toggleMicBtn");
+        const micIcon = document.getElementById("micIcon");
+
+        if (!micBtn || !micIcon) return;
+
+        if (micEnabled) {
+          micBtn.classList.remove("bg-red-500");
+          micBtn.classList.add("bg-white");
+          micIcon.classList.remove("text-white");
+          micIcon.classList.add("text-foreground");
+          micIcon.setAttribute("data-lucide", "mic");
+        } else {
+          micBtn.classList.remove("bg-white");
+          micBtn.classList.add("bg-red-500");
+          micIcon.classList.remove("text-foreground");
+          micIcon.classList.add("text-white");
+          micIcon.setAttribute("data-lucide", "mic-off");
+        }
+        lucide.createIcons();
+      }
+
+      function toggleSpeak() {
+        if (!isListening) {
+          startListening();
+        } else {
+          stopListening();
+        }
+      }
+
+      function startListening() {
+        if (!videoStream) {
+          alert("Please enable camera first");
+          return;
+        }
+
+        isListening = true;
+        isRecordingSession = true;
+        videoEmotionHistory = []; // Clear history for new recording
+
+        const btn = document.getElementById("speakBtn");
+        btn.style.backgroundColor = "#dc2626"; // Red while recording
+
+        // Change icon to sound wave (radio) with pulsing animation
+        const recordIcon = document.getElementById("recordIcon");
+        recordIcon.setAttribute("data-lucide", "radio");
+        recordIcon.setAttribute("stroke", "#ffffff");
+        recordIcon.setAttribute("stroke-width", "2");
+        recordIcon.setAttribute("fill", "none");
+        recordIcon.classList.add("pulse-animation");
+        lucide.createIcons();
+
+        const audioStream = new MediaStream(videoStream.getAudioTracks());
+        const options = {
+          mimeType: "audio/webm;codecs=opus",
+          audioBitsPerSecond: 128000,
+        };
+
+        try {
+          mediaRecorder = new MediaRecorder(audioStream, options);
+        } catch (e) {
+          mediaRecorder = new MediaRecorder(audioStream);
+        }
+
+        audioChunks = [];
+        mediaRecorder.ondataavailable = (event) => {
+          audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+          sendMessageToExaminer(audioBlob);
+        };
+
+        mediaRecorder.start();
+
+        // Capture frames continuously at 12fps if video is enabled
+        if (videoEnabled) {
+          captureFrame(); // Capture first frame immediately
+          frameCaptureInterval = setInterval(() => {
+            captureFrame();
+          }, 83); // ~12fps
+        }
+      }
+
+      function stopListening() {
+        isListening = false;
+        const btn = document.getElementById("speakBtn");
+        btn.style.backgroundColor = "#22c55e"; // Green when not recording
+
+        // Change icon back to circle dot (remove pulsing)
+        const recordIcon = document.getElementById("recordIcon");
+        recordIcon.setAttribute("data-lucide", "circle");
+        recordIcon.setAttribute("stroke-width", "0");
+        recordIcon.setAttribute("fill", "white");
+        recordIcon.classList.remove("pulse-animation");
+        lucide.createIcons();
+
+        // Stop frame capture FIRST
+        if (frameCaptureInterval) {
+          clearInterval(frameCaptureInterval);
+          frameCaptureInterval = null;
+        }
+
+        // Calculate average video emotions if we have history
+        if (videoEmotionHistory.length > 0) {
+          videoEmotions = calculateAverageEmotions(videoEmotionHistory);
+          updateEmotionDisplay();
+        }
+
+        // Mark session as ended (don't accumulate more frames)
+        isRecordingSession = false;
+
+        // Don't clear emotions or hide bar - let user see the results!
+        // They'll be cleared when next recording starts
+
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+          mediaRecorder.stop();
+        }
+      }
+
+      function calculateAverageEmotions(history) {
+        if (history.length === 0) return null;
+
+        // Initialize accumulators
+        const emotionSums = {};
+        const moodSums = {};
+        let engagementSum = 0;
+        let confusionSum = 0;
+        let confidenceSum = 0;
+        let sentimentSum = 0;
+
+        // Sum all values
+        history.forEach((data) => {
+          // Emotions
+          Object.entries(data.emotion.all).forEach(([emotion, score]) => {
+            emotionSums[emotion] = (emotionSums[emotion] || 0) + score;
+          });
+
+          // Moods
+          Object.entries(data.mood.all).forEach(([mood, score]) => {
+            moodSums[mood] = (moodSums[mood] || 0) + score;
+          });
+
+          engagementSum += data.engagement;
+          confusionSum += data.confusion;
+          confidenceSum += data.confidence;
+          sentimentSum += data.sentiment.score;
+        });
+
+        const count = history.length;
+
+        // Calculate averages
+        const avgEmotions = {};
+        Object.keys(emotionSums).forEach((emotion) => {
+          avgEmotions[emotion] = emotionSums[emotion] / count;
+        });
+
+        const avgMoods = {};
+        Object.keys(moodSums).forEach((mood) => {
+          avgMoods[mood] = moodSums[mood] / count;
+        });
+
+        // Find primary emotion and mood
+        const primaryEmotion = Object.entries(avgEmotions).reduce(
+          (max, [emotion, score]) =>
+            score > max.score ? { emotion, score } : max,
+          { emotion: "neutral", score: 0 }
+        );
+
+        const primaryMood = Object.entries(avgMoods).reduce(
+          (max, [mood, score]) => (score > max.score ? { mood, score } : max),
+          { mood: "focused", score: 0 }
+        );
+
+        const avgSentiment = sentimentSum / count;
+        const sentimentPolarity =
+          avgSentiment > 0.15
+            ? "positive"
+            : avgSentiment < -0.15
+            ? "negative"
+            : "neutral";
+
+        return {
+          emotion: {
+            primary: primaryEmotion.emotion,
+            confidence: primaryEmotion.score,
+            all: avgEmotions,
+          },
+          mood: {
+            primary: primaryMood.mood,
+            confidence: primaryMood.score,
+            all: avgMoods,
+          },
+          sentiment: {
+            polarity: sentimentPolarity,
+            score: avgSentiment,
+          },
+          engagement: engagementSum / count,
+          confusion: confusionSum / count,
+          confidence: confidenceSum / count,
+          thinking: false, // Not meaningful for average
+          cues: [`Average of ${count} frames`],
+        };
+      }
+
+      function captureFrame() {
+        if (!sessionId) {
+          return;
+        }
+        const video = document.getElementById("webcam");
+        const canvas = document.getElementById("frame-canvas");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = video.videoWidth || 1280;
+        canvas.height = video.videoHeight || 720;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const frameBase64 = canvas.toDataURL("image/jpeg", 0.8).split(",")[1];
+        socket.emit("video-frame", {
+          sessionId: sessionId,
+          frame: frameBase64,
+          timestamp: Date.now(),
+        });
+      }
+
+      async function sendMessageToExaminer(audioBlob) {
+        // Check if audio blob is too small (likely no audio captured)
+        if (audioBlob.size < 1000) {
+          return;
+        }
+
+        if (!sessionId) {
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const audioBase64 = reader.result.split(",")[1];
+          const voiceSelect = document.getElementById("voiceSelect");
+          const selectedVoice = voiceSelect ? voiceSelect.value : "Ava Song";
+
+          socket.emit("user-message", {
+            sessionId: sessionId,
+            audio: audioBase64,
+            voice: selectedVoice,
+            timestamp: Date.now(),
+          });
+
+          addMessage("user", "Transcribing...");
+          showStatus("Transcribing audio...");
+        };
+        reader.readAsDataURL(audioBlob);
+      }
+
+      function addMessage(role, text) {
+        const messagesDiv = document.getElementById("messages");
+        const messageDiv = document.createElement("div");
+        messageDiv.dataset.role = role;
+
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+
+        if (role === "user") {
+          messageDiv.className = "w-full py-4";
+          messageDiv.innerHTML = `
+            <div class="message-text text-base font-semibold leading-relaxed text-gray-900">${text}</div>
+            <div class="text-xs text-gray-600 mt-1.5 font-medium">${timeStr}</div>
+          `;
+        } else {
+          const messageContent = marked.parse(text);
+          messageDiv.className = "w-full py-4";
+          messageDiv.innerHTML = `
+            <div class="message-text prose prose-sm max-w-none">${messageContent}</div>
+            <div class="text-xs text-gray-600 mt-1.5 font-medium">${timeStr}</div>
+          `;
+        }
+
+        messagesDiv.appendChild(messageDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+
+      function addSystemMessage(text) {
+        const messagesDiv = document.getElementById("messages");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "w-full py-2";
+
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+
+        messageDiv.innerHTML = `
+          <div class="text-xs text-center text-muted-foreground italic">
+            ${text} <span class="ml-2">${timeStr}</span>
+          </div>
+        `;
+
+        messagesDiv.appendChild(messageDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+
+      function displayExamScenario(topic, scenario) {
+        const topicPanel = document.getElementById("topicPanel");
+        const topicTitle = document.getElementById("topicTitle");
+        const topicContent = document.getElementById("topicContent");
+
+        if (!topicPanel || !topicTitle || !topicContent) {
+          console.error("[VideoChat] Topic panel elements not found");
+          return;
+        }
+
+        // Set the title and content
+        topicTitle.textContent = topic || "Examination Topic";
+        topicContent.textContent = scenario || "";
+
+        // Show the panel
+        topicPanel.classList.remove("hidden");
+      }
+
+      function hideExamScenario() {
+        const topicPanel = document.getElementById("topicPanel");
+        if (topicPanel) {
+          topicPanel.classList.add("hidden");
+        }
+      }
+
+      function toggleVideo() {
+        if (!videoStream) return;
+
+        const videoTrack = videoStream.getVideoTracks()[0];
+        if (!videoTrack) return;
+
+        videoEnabled = !videoEnabled;
+        videoTrack.enabled = videoEnabled;
+
+        // Show/hide video element
+        const video = document.getElementById("webcam");
+        const noCameraView = document.getElementById("noCameraView");
+        if (videoEnabled) {
+          video.classList.remove("hidden");
+          noCameraView.classList.add("hidden");
+        } else {
+          video.classList.add("hidden");
+          noCameraView.classList.remove("hidden");
+        }
+
+        updateVideoButtonState();
+        updateRecordButtonState();
+
+        // Device panel remains in place; no extra toggling needed
+      }
+
+      function toggleMic() {
+        if (!videoStream) return;
+
+        const audioTrack = videoStream.getAudioTracks()[0];
+        if (!audioTrack) return;
+
+        micEnabled = !micEnabled;
+        audioTrack.enabled = micEnabled;
+
+        updateMicButtonState();
+        updateRecordButtonState();
+      }
+
+      function updateRecordButtonState() {
+        const speakBtn = document.getElementById("speakBtn");
+        const recordIcon = document.getElementById("recordIcon");
+
+        // Disable button if both video and mic are off, OR if AI is currently speaking
+        if (!videoEnabled && !micEnabled) {
+          speakBtn.disabled = true;
+          recordIcon.classList.remove("text-red-500");
+          recordIcon.classList.add("text-gray-400");
+        } else if (isAISpeaking) {
+          // Disable while AI is speaking
+          speakBtn.disabled = true;
+        } else {
+          speakBtn.disabled = false;
+          recordIcon.classList.remove("text-gray-400");
+          recordIcon.classList.add("text-red-500");
+        }
+      }
+
+      // Exam Timer Functions
+      function startExamTimer() {
+        const timerDisplay = document.getElementById("timerDisplay");
+        const examTimer = document.getElementById("examTimer");
+
+        if (!timerDisplay || !examTimer) return;
+
+        // Start the timer
+        examStartTime = Date.now();
+        examTimer.classList.remove("hidden");
+
+        // Update every second
+        examTimerInterval = setInterval(() => {
+          const elapsed = Math.floor((Date.now() - examStartTime) / 1000);
+          const minutes = Math.floor(elapsed / 60);
+          const seconds = elapsed % 60;
+
+          timerDisplay.textContent = `${String(minutes).padStart(
+            2,
+            "0"
+          )}:${String(seconds).padStart(2, "0")}`;
+        }, 1000);
+      }
+
+      function stopExamTimer() {
+        if (examTimerInterval) {
+          clearInterval(examTimerInterval);
+          examTimerInterval = null;
+        }
+      }
+
+      function resetExamTimer() {
+        stopExamTimer();
+        examStartTime = null;
+        const timerDisplay = document.getElementById("timerDisplay");
+        const examTimer = document.getElementById("examTimer");
+
+        if (timerDisplay) {
+          timerDisplay.textContent = "00:00";
+        }
+        if (examTimer) {
+          examTimer.classList.add("hidden");
+        }
+      }
+
+      // Cleanup on page unload
+      window.addEventListener("beforeunload", () => {
+        stopExamTimer();
+        if (videoStream) {
+          videoStream.getTracks().forEach((track) => track.stop());
+        }
+        if (socket) {
+          socket.disconnect();
+        }
+      });
+    </script>
+  </body>
+</html>

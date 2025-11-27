@@ -1,0 +1,12 @@
+{
+  "buildCommand": "echo 'No build needed'",
+  "outputDirectory": "public",
+  "cleanUrls": false,
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/video-chat.html"
+    }
+  ]
+}

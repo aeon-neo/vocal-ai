@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+
+# Python virtual environment
+venv/
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build outputs
+dist/
+build/
+binaries/
+dist-pkg/
+*.tar.gz
+*.exe
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Cache directories
+.cache/
+cache/
+raw_docs_cache/
+vector_cache/
+eval_output/
+chunks_cache/
+
+# Database files
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!vercel.json
+
+# Logs
+*.log
+logs/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lockpgvector/
