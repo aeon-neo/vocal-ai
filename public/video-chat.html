@@ -246,7 +246,7 @@
         type="button"
         onclick="disconnectAndReset(); window.location.reload();"
         class="w-10 h-10 rounded-full flex items-center justify-center transition-colors cursor-pointer"
-        style="background-color: rgba(220, 38, 38, 0.2); border: 2px solid rgba(220, 38, 38, 0.6);"
+        style="background-color: #ef4444; border: 2px solid #dc2626; z-index: 9999; position: relative;"
         title="Exit examination"
       >
         <i
@@ -254,8 +254,8 @@
           data-lucide="power"
           width="20"
           height="20"
-          stroke-width="2.5"
-          style="color: #dc2626;"
+          stroke-width="3"
+          style="color: white;"
         ></i>
       </button>
     </header>
@@ -1410,15 +1410,15 @@
 
         status.className =
           "w-10 h-10 rounded-full flex items-center justify-center transition-colors cursor-pointer";
-        // Make button actually visible with higher opacity
+        // Use solid, clearly visible colors
         status.style.backgroundColor = connected
-          ? "rgba(80, 128, 141, 0.25)"
-          : "rgba(220, 38, 38, 0.2)";
+          ? "#14b8a6"
+          : "#ef4444";
         status.style.border = connected
-          ? "2px solid rgba(80, 128, 141, 0.7)"
-          : "2px solid rgba(220, 38, 38, 0.6)";
-        icon.style.color = connected ? "#50808D" : "#dc2626";
-        icon.style.strokeWidth = "2.5";
+          ? "2px solid #0d9488"
+          : "2px solid #dc2626";
+        icon.style.color = "white";
+        icon.style.strokeWidth = "3";
 
         lucide.createIcons();
         toggleChatInput(connected);
