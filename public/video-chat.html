@@ -1786,7 +1786,12 @@
           video.classList.remove("hidden");
 
           document.getElementById("noCameraView").classList.add("hidden");
-          // controlButtons visibility is handled by CSS classes (hidden md:flex)
+
+          // Show desktop record button (CSS will hide on mobile with display: none !important)
+          const controlButtons = document.getElementById("controlButtons");
+          if (controlButtons) {
+            controlButtons.classList.remove("hidden");
+          }
 
           // Show mobile record button
           const mobileRecordButton =
