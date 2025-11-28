@@ -739,13 +739,8 @@ export class VideoStreamServer {
               );
             }
           } catch (emotionError) {
-            // Report emotion analysis error to client
-            console.error(`[VideoStream] Audio emotion analysis failed for session ${sessionId}:`, emotionError);
-            this.io.to(sessionId).emit("processing-error", {
-              sessionId: sessionId,
-              error: `Audio emotion analysis failed: ${emotionError instanceof Error ? emotionError.message : String(emotionError)}`,
-              timestamp: Date.now(),
-            });
+            // Log emotion analysis error but don't show to user (non-critical)
+            console.warn(`[VideoStream] Audio emotion analysis failed for session ${sessionId} (continuing without audio emotions):`, emotionError);
             // Continue without emotions (audioEmotion remains null)
           }
 
