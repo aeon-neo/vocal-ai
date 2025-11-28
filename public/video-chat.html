@@ -245,15 +245,16 @@
         id="connectionStatus"
         type="button"
         onclick="if(confirm('Exit the examination? Your progress will be saved.')) { disconnectAndReset(); window.location.reload(); }"
-        class="w-10 h-10 rounded-full flex items-center justify-center bg-red-500/15 border border-red-500/30 transition-colors cursor-pointer"
+        class="w-10 h-10 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+        style="background-color: rgba(220, 38, 38, 0.2); border: 2px solid rgba(220, 38, 38, 0.6);"
       >
         <i
           id="connectionIcon"
           data-lucide="power"
           width="20"
           height="20"
-          stroke-width="2"
-          class="text-red-400"
+          stroke-width="2.5"
+          style="color: #dc2626;"
         ></i>
       </button>
     </header>
@@ -1407,15 +1408,16 @@
         const icon = document.getElementById("connectionIcon");
 
         status.className =
-          "w-10 h-10 rounded-full flex items-center justify-center transition-colors";
-        // Tooltip set in HTML onclick handler
+          "w-10 h-10 rounded-full flex items-center justify-center transition-colors cursor-pointer";
+        // Make button actually visible with higher opacity
         status.style.backgroundColor = connected
-          ? "rgba(80, 128, 141, 0.15)"
-          : "rgba(220, 38, 38, 0.15)";
+          ? "rgba(80, 128, 141, 0.25)"
+          : "rgba(220, 38, 38, 0.2)";
         status.style.border = connected
-          ? "1px solid rgba(80, 128, 141, 0.4)"
-          : "1px solid rgba(220, 38, 38, 0.4)";
+          ? "2px solid rgba(80, 128, 141, 0.7)"
+          : "2px solid rgba(220, 38, 38, 0.6)";
         icon.style.color = connected ? "#50808D" : "#dc2626";
+        icon.style.strokeWidth = "2.5";
 
         lucide.createIcons();
         toggleChatInput(connected);
