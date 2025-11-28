@@ -126,9 +126,15 @@
       /* Video aspect ratio: landscape 3:2 (width:height) */
       #webcam {
         width: 100%;
-        max-width: 180px;
+        max-width: 120px;
         aspect-ratio: 3 / 2;
         object-fit: cover;
+      }
+
+      @media (min-width: 768px) {
+        #webcam {
+          max-width: 180px;
+        }
       }
 
       /* Topic display panel */
@@ -136,28 +142,54 @@
         background: rgba(255, 255, 255, 0.95);
         border: 1px solid rgba(80, 128, 141, 0.3);
         border-radius: 12px;
-        padding: 16px 20px;
+        padding: 12px 16px;
         overflow-y: auto;
         width: 100%;
         max-width: 500px;
-        max-height: 500px;
-        flex: 1;
+        max-height: 320px;
+        flex-shrink: 0;
+      }
+
+      @media (min-width: 640px) {
+        #topicPanel {
+          padding: 16px 20px;
+        }
+      }
+
+      @media (min-width: 768px) {
+        #topicPanel {
+          max-height: 500px;
+          flex: 1;
+        }
       }
 
       #topicPanel .topic-title {
         color: #1a1a1a;
         font-weight: 600;
-        font-size: 14px;
-        margin-bottom: 8px;
+        font-size: 12px;
+        margin-bottom: 6px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
       }
 
+      @media (min-width: 640px) {
+        #topicPanel .topic-title {
+          font-size: 14px;
+          margin-bottom: 8px;
+        }
+      }
+
       #topicPanel .topic-content {
         color: #2c2c2c;
-        font-size: 14px;
+        font-size: 13px;
         line-height: 1.6;
         white-space: pre-wrap;
+      }
+
+      @media (min-width: 640px) {
+        #topicPanel .topic-content {
+          font-size: 14px;
+        }
       }
 
       /* Pulsing animation for recording state */
@@ -221,297 +253,327 @@
         transform: none !important;
         scale: 1 !important;
       }
+
+      /* Force hide desktop timer on mobile - timer shows in header instead */
+      @media (max-width: 767px) {
+        #examTimer {
+          display: none !important;
+        }
+
+        /* Force hide emotion bar on mobile - not needed on mobile */
+        #emotionBar {
+          display: none !important;
+        }
+
+        /* Force hide video emotion rows on mobile */
+        #videoEmotionRow,
+        #audioEmotionRow {
+          display: none !important;
+        }
+
+        /* Force hide video control buttons on mobile - mobile has fixed button at bottom */
+        #controlButtons {
+          display: none !important;
+        }
+      }
     </style>
   </head>
   <body class="h-screen flex flex-col overflow-hidden">
     <!-- Header -->
     <header
-      class="bg-card border-b border-border px-8 py-5 flex justify-between items-center"
+      class="bg-card border-b border-border px-4 sm:px-8 py-3 sm:py-5 flex justify-between items-center"
     >
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 sm:gap-3">
         <img
           src="/logo.jpg"
           alt="VocalAI"
-          class="w-14 h-14 rounded-full shadow-lg"
+          class="w-10 h-10 sm:w-14 sm:h-14 rounded-full shadow-lg"
         />
+        <!-- Desktop: Show full title -->
         <h1
-          class="text-2xl font-semibold tracking-tight"
+          class="hidden md:block text-2xl font-semibold tracking-tight"
           style="color: #ffffff"
         >
           VocalAI - Problem Solving & Critical Thinking Oral Exam
         </h1>
+        <!-- Mobile: Show timer in place of title -->
+        <div
+          id="mobileHeaderTimer"
+          class="md:hidden flex items-center gap-2 hidden"
+        >
+          <span class="text-xs text-white/70 font-medium">Duration: </span>
+          <span
+            id="mobileTimerDisplay"
+            class="text-base font-mono font-bold text-white"
+            >00:00</span
+          >
+        </div>
       </div>
       <button
         id="connectionStatus"
         type="button"
         onclick="disconnectAndReset(); window.location.reload();"
-        class="w-10 h-10 rounded-full flex items-center justify-center transition-colors cursor-pointer"
-        style="background-color: #ef4444; border: 2px solid #dc2626; z-index: 9999; position: relative;"
+        class="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+        style="
+          background-color: #ef4444;
+          border: 2px solid #dc2626;
+          z-index: 9999;
+          position: relative;
+        "
         title="Exit examination"
       >
         <i
           id="connectionIcon"
           data-lucide="power"
-          width="20"
-          height="20"
+          width="18"
+          height="18"
           stroke-width="3"
-          style="color: white;"
+          style="color: white"
         ></i>
       </button>
     </header>
 
     <!-- Main Container -->
-    <div class="flex-1 flex overflow-hidden">
+    <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
       <!-- Video Container -->
       <div
         id="videoContainer"
-        class="flex-1 flex flex-col bg-background border-r border-border p-2"
+        class="flex-shrink-0 md:flex-1 flex flex-col bg-background md:border-r border-border p-3 md:p-4"
       >
         <!-- Video + Topic wrapper - centered with gap -->
-        <div class="flex flex-col items-center justify-center h-full gap-4">
-          <!-- Video + Timer row (horizontal) - only contains video and timer -->
-          <div class="flex items-start gap-4">
+        <div
+          class="flex flex-col items-center md:justify-center md:h-full gap-3 md:gap-4"
+        >
+          <!-- Video + Timer row (horizontal on desktop) -->
+          <div
+            class="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-4"
+          >
             <!-- Video wrapper with relative for button positioning -->
-            <div class="flex flex-col items-center gap-2" style="flex-shrink: 0;">
-            <div class="relative">
-              <video
-                id="webcam"
-                autoplay
-                playsinline
-                muted
-                class="object-contain hidden rounded-xl shadow-2xl"
-              ></video>
-              <canvas id="frame-canvas" class="hidden"></canvas>
+            <div
+              class="flex flex-col items-center gap-2"
+              style="flex-shrink: 0"
+            >
+              <div class="relative">
+                <video
+                  id="webcam"
+                  autoplay
+                  playsinline
+                  muted
+                  class="object-contain hidden rounded-xl shadow-2xl"
+                ></video>
+                <canvas id="frame-canvas" class="hidden"></canvas>
 
-              <!-- No Camera View -->
-              <div
-                id="noCameraView"
-                class="text-center bg-card rounded-xl shadow-soft w-full max-w-md mx-auto p-8"
-              >
-                <h2
-                  class="text-3xl font-semibold mb-3"
-                  style="color: var(--foreground)"
+                <!-- No Camera View -->
+                <div
+                  id="noCameraView"
+                  class="text-center bg-card rounded-xl shadow-soft w-full max-w-[95vw] sm:max-w-md mx-auto p-5 sm:p-8"
                 >
-                  Permission Required
-                </h2>
-                <p
-                  class="mb-7 text-base"
-                  style="color: var(--muted-foreground)"
-                >
-                  Select your camera, microphone and preferred examiner. Then
-                  press the green start button to begin your oral examination.
-                </p>
+                  <h2
+                    class="text-xl sm:text-3xl font-semibold mb-2 sm:mb-3"
+                    style="color: var(--foreground)"
+                  >
+                    Permission Required
+                  </h2>
+                  <p
+                    class="mb-5 sm:mb-7 text-sm sm:text-base"
+                    style="color: var(--muted-foreground)"
+                  >
+                    Select your camera, microphone and preferred examiner. Then
+                    press the green start button to begin your oral examination.
+                  </p>
 
-                <div class="mb-5 w-full">
-                  <div class="flex items-center gap-3">
-                    <i
-                      data-lucide="camera"
-                      width="20"
-                      height="20"
-                      stroke-width="2"
-                      class="flex-shrink-0"
-                      style="color: var(--muted-foreground)"
-                    ></i>
-                    <select
-                      id="cameraSelect"
-                      class="flex-1 min-w-0 px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm overflow-hidden text-ellipsis"
-                      style="max-width: calc(100% - 32px)"
-                    >
-                      <option value="">Loading cameras...</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="mb-5 w-full">
-                  <div class="flex items-center gap-3">
-                    <i
-                      data-lucide="mic"
-                      width="20"
-                      height="20"
-                      stroke-width="2"
-                      class="flex-shrink-0"
-                      style="color: var(--muted-foreground)"
-                    ></i>
-                    <select
-                      id="micSelect"
-                      class="flex-1 min-w-0 px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm overflow-hidden text-ellipsis"
-                      style="max-width: calc(100% - 32px)"
-                    >
-                      <option value="">Loading microphones...</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="mb-7 w-full">
-                  <div class="flex items-center gap-3">
-                    <div class="relative flex-shrink-0 w-5 h-5 cursor-pointer" onclick="playVoiceSample()" title="Click to hear voice sample">
+                  <div class="mb-4 sm:mb-5 w-full">
+                    <div class="flex items-center gap-2 sm:gap-3">
                       <i
-                        id="voiceIcon"
-                        data-lucide="volume-2"
-                        width="20"
-                        height="20"
+                        data-lucide="camera"
+                        width="18"
+                        height="18"
                         stroke-width="2"
-                        class="absolute inset-0 m-auto"
+                        class="flex-shrink-0"
                         style="color: var(--muted-foreground)"
                       ></i>
-                      <span
-                        id="voiceSpinner"
-                        class="voice-spinner hidden"
-                        aria-hidden="true"
-                      ></span>
+                      <select
+                        id="cameraSelect"
+                        class="flex-1 min-w-0 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-background border border-border text-foreground text-xs sm:text-sm overflow-hidden text-ellipsis"
+                        style="max-width: calc(100% - 28px)"
+                      >
+                        <option value="">Loading cameras...</option>
+                      </select>
                     </div>
-                    <select
-                      id="voiceSelect"
-                      onchange="handleVoiceChange()"
-                      class="flex-1 min-w-0 px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm overflow-hidden text-ellipsis"
-                      style="max-width: calc(100% - 32px)"
-                    >
-                      <!-- <option value="No voice" selected>No voice (text only)</option> -->
-                      <option value="Ava Song" selected>Female Examiner</option>
-                      <!-- <option value="Cool Journalist">
+                  </div>
+
+                  <div class="mb-4 sm:mb-5 w-full">
+                    <div class="flex items-center gap-2 sm:gap-3">
+                      <i
+                        data-lucide="mic"
+                        width="18"
+                        height="18"
+                        stroke-width="2"
+                        class="flex-shrink-0"
+                        style="color: var(--muted-foreground)"
+                      ></i>
+                      <select
+                        id="micSelect"
+                        class="flex-1 min-w-0 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-background border border-border text-foreground text-xs sm:text-sm overflow-hidden text-ellipsis"
+                        style="max-width: calc(100% - 28px)"
+                      >
+                        <option value="">Loading microphones...</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="mb-5 sm:mb-7 w-full">
+                    <div class="flex items-center gap-2 sm:gap-3">
+                      <div
+                        class="relative flex-shrink-0 w-5 h-5 cursor-pointer"
+                        onclick="playVoiceSample()"
+                        title="Click to hear voice sample"
+                      >
+                        <i
+                          id="voiceIcon"
+                          data-lucide="volume-2"
+                          width="18"
+                          height="18"
+                          stroke-width="2"
+                          class="absolute inset-0 m-auto"
+                          style="color: var(--muted-foreground)"
+                        ></i>
+                        <span
+                          id="voiceSpinner"
+                          class="voice-spinner hidden"
+                          aria-hidden="true"
+                        ></span>
+                      </div>
+                      <select
+                        id="voiceSelect"
+                        onchange="handleVoiceChange()"
+                        class="flex-1 min-w-0 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-background border border-border text-foreground text-xs sm:text-sm overflow-hidden text-ellipsis"
+                        style="max-width: calc(100% - 28px)"
+                      >
+                        <!-- <option value="No voice" selected>No voice (text only)</option> -->
+                        <option value="Ava Song" selected>
+                          Female Examiner
+                        </option>
+                        <!-- <option value="Cool Journalist">
                   Female 2 - young, energetic, friendly
                 </option>
                 <option value="Serene Assistant">
                   Female 3 - serene, soft, gentle
                 </option> -->
-                      <option value="Deep Male Conversational Voice">
-                        Male Examiner
-                      </option>
-                      <!-- <option value="Soft Male Conversationalist">
+                        <option value="Deep Male Conversational Voice">
+                          Male Examiner
+                        </option>
+                        <!-- <option value="Soft Male Conversationalist">
                   Male 2 - young, calm, polite
                 </option>
 
                 <option value="Booming American Narrator">
                   Male 3 - mature, authoritative, warm
                 </option> -->
-                    </select>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="flex justify-center">
+                    <button
+                      id="enableBtn"
+                      onclick="startExam()"
+                      class="w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg transform hover:scale-105"
+                      style="
+                        background: linear-gradient(135deg, #2f6c67, #45cfc6);
+                      "
+                      title="Start Exam"
+                    >
+                      <i
+                        id="startExamIcon"
+                        data-lucide="play-circle"
+                        width="32"
+                        height="32"
+                        stroke-width="2"
+                        class="text-white"
+                      ></i>
+                      <span
+                        id="startExamSpinner"
+                        class="start-exam-spinner hidden"
+                        aria-hidden="true"
+                      ></span>
+                    </button>
                   </div>
                 </div>
+                <!-- Close noCameraView -->
 
-                <div class="flex justify-center">
+                <!-- Control Buttons (Bottom of video on desktop, not shown here on mobile) -->
+                <div
+                  id="controlButtons"
+                  class="absolute bottom-2 left-1/2 -translate-x-1/2 hidden md:flex gap-3"
+                >
                   <button
-                    id="enableBtn"
-                    onclick="startExam()"
-                    class="w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg transform hover:scale-105"
-                    style="
-                      background: linear-gradient(135deg, #2f6c67, #45cfc6);
-                    "
-                    title="Start Exam"
+                    id="speakBtn"
+                    onclick="toggleSpeak()"
+                    class="w-8 h-8 rounded-full flex items-center justify-center transition-transform shadow-lg disabled:opacity-40 disabled:cursor-not-allowed hover:scale-110"
+                    style="background-color: #22c55e"
                   >
                     <i
-                      id="startExamIcon"
-                      data-lucide="play-circle"
-                      width="32"
-                      height="32"
-                      stroke-width="2"
+                      id="recordIcon"
+                      data-lucide="circle"
+                      width="14"
+                      height="14"
+                      stroke-width="0"
                       class="text-white"
+                      style="fill: white"
                     ></i>
-                    <span
-                      id="startExamSpinner"
-                      class="start-exam-spinner hidden"
-                      aria-hidden="true"
-                    ></span>
                   </button>
                 </div>
               </div>
-              <!-- Close noCameraView -->
+              <!-- Close relative video container -->
 
-              <!-- Control Buttons (Bottom of video) -->
+              <!-- Instructional text below video (inside video wrapper) -->
               <div
-                id="controlButtons"
-                class="absolute bottom-2 left-1/2 -translate-x-1/2 hidden flex gap-3"
+                id="recordInstruction"
+                class="hidden text-center text-xs sm:text-sm text-muted-foreground"
+                style="color: var(--foreground)"
               >
-                <!-- <button
-                id="toggleVideoBtn"
-                onclick="toggleVideo()"
-                class="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:opacity-90 transition-all shadow-lg"
-                title="Toggle Camera"
-              >
-                <i
-                  id="videoIcon"
-                  data-lucide="video"
-                  width="16"
-                  height="16"
-                  stroke-width="2"
-                  class="text-foreground"
-                ></i>
-              </button>
-              <button
-                id="toggleMicBtn"
-                onclick="toggleMic()"
-                class="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:opacity-90 transition-all shadow-lg"
-                title="Toggle Microphone"
-              >
-                <i
-                  id="micIcon"
-                  data-lucide="mic"
-                  width="16"
-                  height="16"
-                  stroke-width="2"
-                  class="text-foreground"
-                ></i>
-              </button> -->
-                <button
-                  id="speakBtn"
-                  onclick="toggleSpeak()"
-                  class="w-8 h-8 rounded-full flex items-center justify-center transition-transform shadow-lg disabled:opacity-40 disabled:cursor-not-allowed hover:scale-110"
-                  style="background-color: #22c55e"
+                <span class="hidden md:inline"
+                  >Click record button below video to speak.</span
                 >
-                  <i
-                    id="recordIcon"
-                    data-lucide="circle"
-                    width="14"
-                    height="14"
-                    stroke-width="0"
-                    class="text-white"
-                    style="fill: white"
-                  ></i>
-                </button>
+                <span class="md:hidden"
+                  >Tap record button at bottom of screen to speak, then tap
+                  again when done</span
+                >
               </div>
-            </div>
-            <!-- Close relative video container -->
-
-            <!-- Instructional text below video (inside video wrapper) -->
-            <div
-              id="recordInstruction"
-              class="hidden text-center text-sm text-muted-foreground"
-              style="color: var(--foreground)"
-            >
-              Click record to speak and again to send your response
-            </div>
             </div>
             <!-- Close video wrapper -->
 
-          <!-- Exam Timer (next to video, only as tall as video) -->
-          <div
-            id="examTimer"
-            class="hidden px-4 py-2 rounded-lg"
-            style="
-              background: rgba(80, 128, 141, 0.1);
-              border: 1px solid rgba(80, 128, 141, 0.3);
-              align-self: flex-start;
-              flex-shrink: 0;
-            "
-          >
+            <!-- Exam Timer (desktop only - NOT shown on mobile, timer is in header on mobile) -->
             <div
-              class="text-xs uppercase tracking-wide text-center"
-              style="color: #6b7280; font-weight: 500"
+              id="examTimer"
+              class="hidden md:flex flex-col px-4 py-2 rounded-lg"
+              style="
+                background: rgba(80, 128, 141, 0.1);
+                border: 1px solid rgba(80, 128, 141, 0.3);
+                align-self: flex-start;
+                flex-shrink: 0;
+              "
             >
-              Exam Duration
+              <div
+                class="text-xs uppercase tracking-wide text-center"
+                style="color: #6b7280; font-weight: 500"
+              >
+                Duration
+              </div>
+              <div
+                class="text-2xl font-mono font-bold mt-1 text-center"
+                style="color: #50808d"
+                id="timerDisplay"
+              >
+                00:00
+              </div>
             </div>
-            <div
-              class="text-2xl font-mono font-bold mt-1 text-center"
-              style="color: #50808d"
-              id="timerDisplay"
-            >
-              00:00
-            </div>
-          </div>
           </div>
           <!-- Close Video + Timer row -->
 
           <!-- Topic Panel (displayed below video) -->
-          <div id="topicPanel" class="hidden">
+          <div id="topicPanel" class="hidden w-full">
             <div class="topic-title" id="topicTitle">Examination Topic</div>
             <div class="topic-content" id="topicContent"></div>
           </div>
@@ -529,26 +591,29 @@
       <!-- Chat Container -->
       <div
         id="chatContainer"
-        class="flex-1 md:flex-none md:w-[600px] bg-white flex flex-col"
+        class="flex-1 md:w-[600px] bg-white flex flex-col overflow-hidden"
       >
         <!-- Messages -->
-        <div id="messages" class="flex-1 overflow-y-auto p-6 space-y-4">
+        <div
+          id="messages"
+          class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 sm:space-y-4"
+        >
           <!-- Messages will be added here dynamically -->
         </div>
 
         <!-- Status Bar (for "Thinking..." etc) - positioned above input -->
         <div
           id="statusBar"
-          class="hidden px-6 py-2 text-sm text-muted-foreground italic"
+          class="hidden px-4 sm:px-6 py-2 text-xs sm:text-sm text-muted-foreground italic text-center"
         >
           <span id="statusText"></span>
           <span id="statusTime" class="ml-2 font-mono text-xs"></span>
         </div>
 
-        <!-- Emotion Status Bar -->
+        <!-- Emotion Status Bar (desktop only) -->
         <div
           id="emotionBar"
-          class="hidden px-6 py-2 text-xs text-muted-foreground border-t border-border space-y-1"
+          class="hidden md:block px-6 py-2 text-xs text-muted-foreground border-t border-border space-y-1"
         >
           <div id="videoEmotionRow" class="hidden flex items-center gap-3">
             <span
@@ -584,30 +649,33 @@
           </div>
         </div>
 
-        <!-- Text Input -->
-        <div id="inputPanel" class="border-t border-border p-4">
+        <!-- Text Input (hidden on mobile) -->
+        <div
+          id="inputPanel"
+          class="hidden md:block border-t border-border p-3 sm:p-4"
+        >
           <div
             id="inputPlaceholder"
-            class="flex items-center justify-center gap-3 py-3"
+            class="flex items-center justify-center gap-2 sm:gap-3 py-2 sm:py-3"
           >
             <div class="flex justify-center">
               <button
                 id="enableBtn"
                 onclick="startExam()"
-                class="w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-lg transform hover:scale-105"
+                class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all shadow-lg transform hover:scale-105"
                 style="background: linear-gradient(135deg, #2f6c67, #45cfc6)"
                 title="Start Exam"
               >
                 <i
                   data-lucide="play-circle"
-                  width="32"
-                  height="32"
+                  width="28"
+                  height="28"
                   stroke-width="2"
-                  class="text-white"
+                  class="text-white sm:w-8 sm:h-8"
                 ></i>
               </button>
             </div>
-            <span class="text-sm text-muted-foreground">
+            <span class="text-xs sm:text-sm text-muted-foreground">
               Press the start button to begin
             </span>
           </div>
@@ -617,7 +685,7 @@
                 type="text"
                 id="textInput"
                 placeholder="Type your response..."
-                class="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                class="w-full px-3 sm:px-4 py-2 rounded-lg border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
               <div class="text-xs text-muted-foreground mt-1 pl-2">
                 Press Enter to send
@@ -626,6 +694,29 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Mobile Record Button (fixed at bottom of screen) -->
+    <div
+      id="mobileRecordButton"
+      class="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 hidden z-50"
+    >
+      <button
+        id="mobileSpeakBtn"
+        onclick="toggleSpeak()"
+        class="w-16 h-16 rounded-full flex items-center justify-center transition-transform shadow-2xl disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+        style="background-color: #22c55e"
+      >
+        <i
+          id="mobileRecordIcon"
+          data-lucide="circle"
+          width="24"
+          height="24"
+          stroke-width="0"
+          class="text-white"
+          style="fill: white"
+        ></i>
+      </button>
     </div>
 
     <script src="/config.js"></script>
@@ -947,6 +1038,8 @@
         const webcam = document.getElementById("webcam");
         const noCameraView = document.getElementById("noCameraView");
         const controlButtons = document.getElementById("controlButtons");
+        const mobileRecordButton =
+          document.getElementById("mobileRecordButton");
 
         if (webcam) {
           webcam.srcObject = null;
@@ -957,6 +1050,9 @@
         }
         if (controlButtons) {
           controlButtons.classList.add("hidden");
+        }
+        if (mobileRecordButton) {
+          mobileRecordButton.classList.add("hidden");
         }
 
         // Hide instructional text
@@ -1040,22 +1136,19 @@
 
         setVoiceLoadingState(true);
         try {
-          const response = await fetch(
-            `${BACKEND_URL}/api/voice-sample`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                voice: voice,
-                text:
-                  "Hello, I'm " +
-                  friendlyName +
-                  ", for your problem solving and critical thinking assessment. Select your camera, microphone, and preferred examiner voice. Then press the green start button when you are ready to begin.",
-              }),
-            }
-          );
+          const response = await fetch(`${BACKEND_URL}/api/voice-sample`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              voice: voice,
+              text:
+                "Hello, I'm " +
+                friendlyName +
+                ", for your problem solving and critical thinking assessment. Select your camera, microphone, and preferred examiner voice. Then press the green start button when you are ready to begin.",
+            }),
+          });
 
           const data = await response.json();
 
@@ -1411,9 +1504,7 @@
         status.className =
           "w-10 h-10 rounded-full flex items-center justify-center transition-colors cursor-pointer";
         // Use solid, clearly visible colors
-        status.style.backgroundColor = connected
-          ? "#14b8a6"
-          : "#ef4444";
+        status.style.backgroundColor = connected ? "#14b8a6" : "#ef4444";
         status.style.border = connected
           ? "2px solid #0d9488"
           : "2px solid #dc2626";
@@ -1695,7 +1786,14 @@
           video.classList.remove("hidden");
 
           document.getElementById("noCameraView").classList.add("hidden");
-          document.getElementById("controlButtons").classList.remove("hidden");
+          // controlButtons visibility is handled by CSS classes (hidden md:flex)
+
+          // Show mobile record button
+          const mobileRecordButton =
+            document.getElementById("mobileRecordButton");
+          if (mobileRecordButton) {
+            mobileRecordButton.classList.remove("hidden");
+          }
 
           // Show instructional text
           const recordInstruction =
@@ -1708,9 +1806,13 @@
 
           // Set initial disabled state for record button based on whether we're currently processing
           const speakBtn = document.getElementById("speakBtn");
+          const mobileSpeakBtn = document.getElementById("mobileSpeakBtn");
           const statusBar = document.getElementById("statusBar");
           const isProcessing = !statusBar.classList.contains("hidden");
-          speakBtn.disabled = isProcessing || (!videoEnabled && !micEnabled);
+          const shouldDisable = isProcessing || (!videoEnabled && !micEnabled);
+
+          if (speakBtn) speakBtn.disabled = shouldDisable;
+          if (mobileSpeakBtn) mobileSpeakBtn.disabled = shouldDisable;
 
           // Show text input immediately when exam starts (don't wait for WebSocket)
           toggleChatInput(true);
@@ -1885,16 +1987,33 @@
         isRecordingSession = true;
         videoEmotionHistory = []; // Clear history for new recording
 
+        // Update desktop button
         const btn = document.getElementById("speakBtn");
-        btn.style.backgroundColor = "#dc2626"; // Red while recording
+        if (btn) btn.style.backgroundColor = "#dc2626"; // Red while recording
 
-        // Change icon to sound wave (radio) with pulsing animation
+        // Update mobile button
+        const mobileBtn = document.getElementById("mobileSpeakBtn");
+        if (mobileBtn) mobileBtn.style.backgroundColor = "#dc2626";
+
+        // Change icons to sound wave (radio) with pulsing animation
         const recordIcon = document.getElementById("recordIcon");
-        recordIcon.setAttribute("data-lucide", "radio");
-        recordIcon.setAttribute("stroke", "#ffffff");
-        recordIcon.setAttribute("stroke-width", "2");
-        recordIcon.setAttribute("fill", "none");
-        recordIcon.classList.add("pulse-animation");
+        if (recordIcon) {
+          recordIcon.setAttribute("data-lucide", "radio");
+          recordIcon.setAttribute("stroke", "#ffffff");
+          recordIcon.setAttribute("stroke-width", "2");
+          recordIcon.setAttribute("fill", "none");
+          recordIcon.classList.add("pulse-animation");
+        }
+
+        const mobileRecordIcon = document.getElementById("mobileRecordIcon");
+        if (mobileRecordIcon) {
+          mobileRecordIcon.setAttribute("data-lucide", "radio");
+          mobileRecordIcon.setAttribute("stroke", "#ffffff");
+          mobileRecordIcon.setAttribute("stroke-width", "2");
+          mobileRecordIcon.setAttribute("fill", "none");
+          mobileRecordIcon.classList.add("pulse-animation");
+        }
+
         lucide.createIcons();
 
         const audioStream = new MediaStream(videoStream.getAudioTracks());
@@ -1932,15 +2051,32 @@
 
       function stopListening() {
         isListening = false;
-        const btn = document.getElementById("speakBtn");
-        btn.style.backgroundColor = "#22c55e"; // Green when not recording
 
-        // Change icon back to circle dot (remove pulsing)
+        // Update desktop button
+        const btn = document.getElementById("speakBtn");
+        if (btn) btn.style.backgroundColor = "#22c55e"; // Green when not recording
+
+        // Update mobile button
+        const mobileBtn = document.getElementById("mobileSpeakBtn");
+        if (mobileBtn) mobileBtn.style.backgroundColor = "#22c55e";
+
+        // Change icons back to circle dot (remove pulsing)
         const recordIcon = document.getElementById("recordIcon");
-        recordIcon.setAttribute("data-lucide", "circle");
-        recordIcon.setAttribute("stroke-width", "0");
-        recordIcon.setAttribute("fill", "white");
-        recordIcon.classList.remove("pulse-animation");
+        if (recordIcon) {
+          recordIcon.setAttribute("data-lucide", "circle");
+          recordIcon.setAttribute("stroke-width", "0");
+          recordIcon.setAttribute("fill", "white");
+          recordIcon.classList.remove("pulse-animation");
+        }
+
+        const mobileRecordIcon = document.getElementById("mobileRecordIcon");
+        if (mobileRecordIcon) {
+          mobileRecordIcon.setAttribute("data-lucide", "circle");
+          mobileRecordIcon.setAttribute("stroke-width", "0");
+          mobileRecordIcon.setAttribute("fill", "white");
+          mobileRecordIcon.classList.remove("pulse-animation");
+        }
+
         lucide.createIcons();
 
         // Stop frame capture FIRST
@@ -2225,20 +2361,28 @@
 
       function updateRecordButtonState() {
         const speakBtn = document.getElementById("speakBtn");
+        const mobileSpeakBtn = document.getElementById("mobileSpeakBtn");
         const recordIcon = document.getElementById("recordIcon");
 
         // Disable button if both video and mic are off, OR if AI is currently speaking
         if (!videoEnabled && !micEnabled) {
-          speakBtn.disabled = true;
-          recordIcon.classList.remove("text-red-500");
-          recordIcon.classList.add("text-gray-400");
+          if (speakBtn) speakBtn.disabled = true;
+          if (mobileSpeakBtn) mobileSpeakBtn.disabled = true;
+          if (recordIcon) {
+            recordIcon.classList.remove("text-red-500");
+            recordIcon.classList.add("text-gray-400");
+          }
         } else if (isAISpeaking) {
           // Disable while AI is speaking
-          speakBtn.disabled = true;
+          if (speakBtn) speakBtn.disabled = true;
+          if (mobileSpeakBtn) mobileSpeakBtn.disabled = true;
         } else {
-          speakBtn.disabled = false;
-          recordIcon.classList.remove("text-gray-400");
-          recordIcon.classList.add("text-red-500");
+          if (speakBtn) speakBtn.disabled = false;
+          if (mobileSpeakBtn) mobileSpeakBtn.disabled = false;
+          if (recordIcon) {
+            recordIcon.classList.remove("text-gray-400");
+            recordIcon.classList.add("text-red-500");
+          }
         }
       }
 
@@ -2246,6 +2390,9 @@
       function startExamTimer() {
         const timerDisplay = document.getElementById("timerDisplay");
         const examTimer = document.getElementById("examTimer");
+        const mobileTimerDisplay =
+          document.getElementById("mobileTimerDisplay");
+        const mobileHeaderTimer = document.getElementById("mobileHeaderTimer");
 
         if (!timerDisplay || !examTimer) return;
 
@@ -2253,16 +2400,28 @@
         examStartTime = Date.now();
         examTimer.classList.remove("hidden");
 
+        // Show mobile timer in header
+        if (mobileHeaderTimer) {
+          mobileHeaderTimer.classList.remove("hidden");
+          mobileHeaderTimer.classList.add("flex");
+        }
+
         // Update every second
         examTimerInterval = setInterval(() => {
           const elapsed = Math.floor((Date.now() - examStartTime) / 1000);
           const minutes = Math.floor(elapsed / 60);
           const seconds = elapsed % 60;
 
-          timerDisplay.textContent = `${String(minutes).padStart(
-            2,
-            "0"
-          )}:${String(seconds).padStart(2, "0")}`;
+          const timeString = `${String(minutes).padStart(2, "0")}:${String(
+            seconds
+          ).padStart(2, "0")}`;
+
+          timerDisplay.textContent = timeString;
+
+          // Update mobile timer too
+          if (mobileTimerDisplay) {
+            mobileTimerDisplay.textContent = timeString;
+          }
         }, 1000);
       }
 
@@ -2278,12 +2437,24 @@
         examStartTime = null;
         const timerDisplay = document.getElementById("timerDisplay");
         const examTimer = document.getElementById("examTimer");
+        const mobileTimerDisplay =
+          document.getElementById("mobileTimerDisplay");
+        const mobileHeaderTimer = document.getElementById("mobileHeaderTimer");
 
         if (timerDisplay) {
           timerDisplay.textContent = "00:00";
         }
         if (examTimer) {
           examTimer.classList.add("hidden");
+        }
+
+        // Reset mobile timer
+        if (mobileTimerDisplay) {
+          mobileTimerDisplay.textContent = "00:00";
+        }
+        if (mobileHeaderTimer) {
+          mobileHeaderTimer.classList.add("hidden");
+          mobileHeaderTimer.classList.remove("flex");
         }
       }
 

@@ -474,9 +474,7 @@ Respond in JSON format:
 
 Please tell me briefly: How would you describe your cultural background? For example, your ethnicity, upbringing, any religious beliefs you may have, and your preferred language for this examination.
 
-When you're ready to respond, click the record button at the bottom of the video screen to speak, then click it again when you're done. 
-
-Alternatively, you can simply type your response in the chat box below if you prefer.`;
+When you're ready to respond, click the record button at the bottom of the screen to speak, then click it again when you're done.`;
 
     return {
       success: true,
