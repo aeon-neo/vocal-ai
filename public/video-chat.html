@@ -244,9 +244,10 @@
       <button
         id="connectionStatus"
         type="button"
-        onclick="if(confirm('Exit the examination? Your progress will be saved.')) { disconnectAndReset(); window.location.reload(); }"
+        onclick="disconnectAndReset(); window.location.reload();"
         class="w-10 h-10 rounded-full flex items-center justify-center transition-colors cursor-pointer"
         style="background-color: rgba(220, 38, 38, 0.2); border: 2px solid rgba(220, 38, 38, 0.6);"
+        title="Exit examination"
       >
         <i
           id="connectionIcon"
