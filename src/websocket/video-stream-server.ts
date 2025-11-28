@@ -79,8 +79,21 @@ export class VideoStreamServer {
     this.sessionAssignments = new Map(); // Track socket => session IDs
 
     // Configure CORS for Express routes
+    // Parse CORS_ORIGIN - supports single origin, comma-separated list, or "*"
+    let allowedOrigins: string | string[] | boolean = "*";
+    if (config.corsOrigin) {
+      if (config.corsOrigin === "*") {
+        allowedOrigins = "*";
+      } else if (typeof config.corsOrigin === "string" && config.corsOrigin.includes(",")) {
+        // Split comma-separated list
+        allowedOrigins = config.corsOrigin.split(",").map(o => o.trim());
+      } else {
+        allowedOrigins = config.corsOrigin;
+      }
+    }
+
     this.app.use(cors({
-      origin: config.corsOrigin || "*",
+      origin: allowedOrigins,
       credentials: true,
     }));
 
@@ -266,7 +279,7 @@ export class VideoStreamServer {
     // Initialize Socket.IO server
     this.io = new Server(this.httpServer, {
       cors: {
-        origin: config.corsOrigin || "*", // Restrict in production
+        origin: allowedOrigins, // Use same CORS config as Express
         methods: ["GET", "POST"],
       },
       maxHttpBufferSize: config.maxHttpBufferSize || 1e7, // 10MB for video frames
