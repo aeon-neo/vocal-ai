@@ -782,21 +782,111 @@ export class VideoStreamServer {
           }
           this.sessionStates.set(sessionId, sessionState);
 
-          // Emit examiner's Socratic question
-          this.io.to(sessionId).emit("examiner-response", {
-            message: examResult.response,
-            timestamp: examResult.timestamp,
-            isFinalAssessment: examResult.isFinalAssessment || false,
-          });
+          // Special handling for final assessment: speak closing, then show full assessment
+          if (examResult.isFinalAssessment && examResult.response) {
+            const lines = examResult.response.split('\n');
+            const closingLine = lines[0]; // "Thank you. That is the end of your exam. Your assessment will follow shortly."
 
-          console.log(`[VideoStream] Examiner responded to session ${sessionId}`);
+            // First: Emit and speak the closing line
+            this.io.to(sessionId).emit("examiner-response", {
+              message: closingLine,
+              timestamp: examResult.timestamp,
+              isFinalAssessment: false, // Allow TTS for closing
+            });
 
-          // Synthesize voice if TTS service is available (streaming for lower latency)
-          if (this.ttsService && this.chatService) {
-            const selectedVoice = (data as any).voice || 'Ava Song';
+            console.log(`[VideoStream] Speaking exam closing for session ${sessionId}`);
 
-            // Skip voice synthesis if "No voice" is selected OR if this is the final assessment
-            if (selectedVoice !== 'No voice' && examResult.response && !examResult.isFinalAssessment) {
+            // Synthesize voice for closing line
+            if (this.ttsService && this.chatService) {
+              const selectedVoice = (data as any).voice || 'Ava Song';
+
+              if (selectedVoice !== 'No voice') {
+                // Speak the closing line
+                (async () => {
+                  try {
+                    const primaryEmotion = audioEmotion?.emotion?.primary || videoEmotion?.emotion?.primary;
+                    const emotionConfidence = audioEmotion?.emotion?.confidence || videoEmotion?.emotion?.confidence;
+
+                    const streamGenerator = this.ttsService!.synthesizeSpeechStreaming(
+                      closingLine,
+                      {
+                        voice: selectedVoice,
+                        limbicState: undefined,
+                        emotionalContext: {
+                          primaryEmotion: primaryEmotion,
+                          confidence: emotionConfidence
+                        }
+                      }
+                    );
+
+                    let chunkCount = 0;
+                    for await (const chunk of streamGenerator) {
+                      chunkCount++;
+                      this.io.to(sessionId).emit("examiner-audio-chunk", {
+                        chunk: chunk,
+                        isFirst: chunkCount === 1,
+                        timestamp: Date.now(),
+                      });
+                    }
+
+                    // Signal audio complete
+                    this.io.to(sessionId).emit("examiner-audio-complete", {
+                      timestamp: Date.now(),
+                      isFinalAssessment: false,
+                    });
+
+                    console.log(`[VideoStream] Closing line spoken, now showing full assessment`);
+
+                    // After audio completes, emit the full assessment as text-only
+                    setTimeout(() => {
+                      this.io.to(sessionId).emit("examiner-response", {
+                        message: examResult.response,
+                        timestamp: Date.now(),
+                        isFinalAssessment: true, // Skip TTS for full assessment
+                      });
+                    }, 1000); // 1 second delay after audio completes
+                  } catch (error) {
+                    console.error(`[VideoStream] TTS error for closing:`, error);
+                    // Still show full assessment even if TTS fails
+                    this.io.to(sessionId).emit("examiner-response", {
+                      message: examResult.response,
+                      timestamp: Date.now(),
+                      isFinalAssessment: true,
+                    });
+                  }
+                })();
+              } else {
+                // No voice: show full assessment immediately
+                this.io.to(sessionId).emit("examiner-response", {
+                  message: examResult.response,
+                  timestamp: Date.now(),
+                  isFinalAssessment: true,
+                });
+              }
+            } else {
+              // No TTS service: show full assessment immediately
+              this.io.to(sessionId).emit("examiner-response", {
+                message: examResult.response,
+                timestamp: Date.now(),
+                isFinalAssessment: true,
+              });
+            }
+          } else {
+            // Normal question flow
+            this.io.to(sessionId).emit("examiner-response", {
+              message: examResult.response,
+              timestamp: examResult.timestamp,
+              isFinalAssessment: examResult.isFinalAssessment || false,
+            });
+
+            console.log(`[VideoStream] Examiner responded to session ${sessionId}`);
+
+            // Synthesize voice if TTS service is available (streaming for lower latency)
+            if (this.ttsService && this.chatService) {
+              const selectedVoice = (data as any).voice || 'Ava Song';
+
+              // Skip voice synthesis if "No voice" is selected
+              if (selectedVoice !== 'No voice' && examResult.response) {
               // Fire-and-forget: Stream audio chunks as they're generated by Hume
               (async () => {
                 try {
@@ -844,12 +934,9 @@ export class VideoStreamServer {
                 }
               })();
             } else {
-              if (examResult.isFinalAssessment) {
-                console.log(`[VideoStream] Voice synthesis skipped - final assessment is text-only`);
-              } else {
-                console.log(`[VideoStream] Voice synthesis skipped - user selected "No voice" or empty response`);
-              }
+              console.log(`[VideoStream] Voice synthesis skipped - user selected "No voice" or empty response`);
             }
+          }
           }
         } catch (error) {
           console.error(
