@@ -243,8 +243,9 @@
       <button
         id="connectionStatus"
         type="button"
+        onclick="if(confirm('Are you sure you want to exit the examination? Your progress will be saved.')) { disconnectAndReset(); }"
         class="w-10 h-10 rounded-full flex items-center justify-center bg-red-500/15 border border-red-500/30 transition-colors cursor-pointer"
-        title="Disconnected"
+        title="Disconnected - Click to exit"
       >
         <i
           id="connectionIcon"
@@ -266,8 +267,10 @@
       >
         <!-- Video + Topic wrapper - centered with gap -->
         <div class="flex flex-col items-center justify-center h-full gap-4">
-          <!-- Video wrapper with relative for button positioning -->
-          <div class="flex flex-col items-center gap-2">
+          <!-- Video + Timer row (horizontal) -->
+          <div class="flex items-start gap-4">
+            <!-- Video wrapper with relative for button positioning -->
+            <div class="flex flex-col items-center gap-2">
             <div class="relative">
               <video
                 id="webcam"
@@ -474,32 +477,34 @@
             >
               Click record to speak and again to send your response
             </div>
-
-            <!-- Exam Timer -->
-            <div
-              id="examTimer"
-              class="hidden text-center mt-3 px-4 py-2 rounded-lg"
-              style="
-                background: rgba(80, 128, 141, 0.1);
-                border: 1px solid rgba(80, 128, 141, 0.3);
-              "
-            >
-              <div
-                class="text-xs uppercase tracking-wide"
-                style="color: #6b7280; font-weight: 500"
-              >
-                Exam Duration
-              </div>
-              <div
-                class="text-2xl font-mono font-bold mt-1"
-                style="color: #50808d"
-                id="timerDisplay"
-              >
-                00:00
-              </div>
-            </div>
           </div>
           <!-- Close video wrapper -->
+
+          <!-- Exam Timer (next to video) -->
+          <div
+            id="examTimer"
+            class="hidden px-4 py-2 rounded-lg"
+            style="
+              background: rgba(80, 128, 141, 0.1);
+              border: 1px solid rgba(80, 128, 141, 0.3);
+            "
+          >
+            <div
+              class="text-xs uppercase tracking-wide text-center"
+              style="color: #6b7280; font-weight: 500"
+            >
+              Exam Duration
+            </div>
+            <div
+              class="text-2xl font-mono font-bold mt-1 text-center"
+              style="color: #50808d"
+              id="timerDisplay"
+            >
+              00:00
+            </div>
+          </div>
+          </div>
+          <!-- Close Video + Timer row -->
 
           <!-- Topic Panel (displayed below video) -->
           <div id="topicPanel" class="hidden">
@@ -646,6 +651,7 @@
       // Exam timer
       let examStartTime = null;
       let examTimerInterval = null;
+      let examTimerStarted = false;
 
       // Session ID - created once per page load, reused on reconnections
       let sessionId = null;
@@ -1400,7 +1406,7 @@
 
         status.className =
           "w-10 h-10 rounded-full flex items-center justify-center transition-colors";
-        status.title = connected ? "Connected" : "Disconnected";
+        status.title = connected ? "Connected - Click to exit exam" : "Disconnected - Click to exit";
         status.style.backgroundColor = connected
           ? "rgba(80, 128, 141, 0.15)"
           : "rgba(220, 38, 38, 0.15)";
@@ -1693,8 +1699,7 @@
             recordInstruction.classList.remove("hidden");
           }
 
-          // Start exam timer
-          startExamTimer();
+          // Timer will start when topic is displayed
 
           // Set initial disabled state for record button based on whether we're currently processing
           const speakBtn = document.getElementById("speakBtn");
@@ -2159,6 +2164,12 @@
 
         // Show the panel
         topicPanel.classList.remove("hidden");
+
+        // Start exam timer once topic is displayed (only once)
+        if (!examTimerStarted) {
+          startExamTimer();
+          examTimerStarted = true;
+        }
       }
 
       function hideExamScenario() {
